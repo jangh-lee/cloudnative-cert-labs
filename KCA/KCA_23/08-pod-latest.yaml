@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bare-latest
+  namespace: kca23
+  labels:
+    lecture.kca/lab: kca23
+spec:
+  containers:
+    - name: web
+      image: nginx:latest

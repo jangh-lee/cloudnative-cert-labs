@@ -1,0 +1,24 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kca10-require-team
+  labels:
+    lecture.kca/lab: kca10
+spec:
+  background: false
+  rules:
+    - name: team-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - "kca10-*"
+      validate:
+        failureAction: Enforce
+        message: "team 라벨 필요"
+        pattern:
+          metadata:
+            labels:
+              team: "?*"

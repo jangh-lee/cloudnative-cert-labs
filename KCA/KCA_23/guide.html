@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCA 23 실습 · Autogen</title>
+<style>
+:root{--bg:#f7f8fa;--card:#fff;--fg:#1b2230;--sub:#5d6b82;--line:#dfe3ea;--accent:#0f8a7e;--cur:#e3f3f1;--code:#0f1522;--codefg:#e6edf6;--ok:#1d7f4f;--outbg:#eef1f6;--outfg:#3b4658;--font:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--side:300px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1424;--card:#131c2f;--fg:#eef2f8;--sub:#9aa7bd;--line:#2c3a52;--accent:#5fd3c3;--cur:#1a2e3a;--code:#060a14;--codefg:#e6edf6;--ok:#5fd3a0;--outbg:#18233a;--outfg:#b3c0d6}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 var(--font)}
+.top{position:fixed;top:0;left:0;right:0;height:56px;z-index:20;display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--card);border-bottom:1px solid var(--line)}
+.top h1{font-size:17px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sp{flex:1}
+.top .pos{font-size:14px;color:var(--sub);white-space:nowrap}
+button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#navbtn{display:none}
+nav{position:fixed;top:56px;bottom:0;left:0;width:var(--side);overflow-y:auto;background:var(--card);border-right:1px solid var(--line);padding:10px 0 40px;z-index:15}
+nav ul,nav ol{list-style:none;margin:0;padding:0}
+nav .sec>span{display:block;font-size:12px;color:var(--sub);padding:12px 16px 4px;font-weight:600}
+nav a{display:flex;gap:6px;align-items:baseline;padding:5px 16px;color:var(--fg);text-decoration:none;font-size:14px;line-height:1.4;border-left:3px solid transparent}
+nav a:hover{background:var(--cur)}
+nav a.cur{background:var(--cur);border-left-color:var(--accent);font-weight:600}
+nav .nn{color:var(--accent);min-width:2.2em}
+nav .mk{flex:none;width:12px;height:12px;border:1.5px solid var(--line);border-radius:3px;position:relative;top:1px}
+nav a.ok .mk{background:var(--ok);border-color:var(--ok)}
+nav a.ok .mk:after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+nav .extra a{color:var(--sub)}
+main{margin-left:var(--side);padding:76px 32px 110px;max-width:calc(var(--side) + 980px)}
+.page{display:none;max-width:920px}
+.page.on{display:block}
+.page h2{font-size:24px;margin:4px 0 8px;outline:none;scroll-margin-top:72px}
+.step header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.crumb{margin:0;font-size:13px;color:var(--sub)}
+.sl{font-size:13px;color:var(--sub);white-space:nowrap}
+.no{color:var(--accent);margin-right:4px}
+.why{margin:6px 0 12px;color:var(--sub)}
+.eff{margin:6px 0 10px;font-size:17px;font-weight:600} .ba{margin:4px 0 12px} .ba td{width:50%} .ba code{font-size:.88em} .stuck{font-size:14px;color:var(--sub);margin:8px 0}
+.bd{display:inline-block;font-size:12px;font-weight:700;border-radius:4px;padding:2px 8px;vertical-align:3px;margin-left:6px;color:#fff} .bd-before{background:#6b7280} .bd-after{background:#15803d} .bdt{font-size:13px;color:var(--sub);font-weight:400;margin-left:6px;vertical-align:2px}
+.grp{margin:0 0 22px}
+.page{max-width:1240px} main{max-width:calc(var(--side) + 1300px)}
+.grp.has-y{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+.yp{margin:0 0 8px;border:1px solid var(--line);border-radius:8px;background:var(--card)} .yp summary{padding:6px 10px;font:600 12.5px var(--mono);color:var(--sub)}
+.ycode{margin:0} .ycode pre{border-radius:0 0 8px 8px;font-size:12.5px;line-height:1.55;padding-right:60px}
+.yk{color:#7cc7ff} .ys{color:#f3d28b} .yc{color:#8a96aa}
+.hl{display:inline-block;min-width:100%;font-weight:700;border-left:5px solid;margin-left:-14px;padding-left:9px;color:#111} .hl .yk,.hl .ys{color:#111}
+.hl::after{content:attr(data-n);display:inline-block;margin-left:10px;font:700 11px var(--font);padding:1px 6px;border-radius:3px;color:#fff;background:#111}
+.hl-key{background:#fcd34d;border-color:#b45309} .hl-bad{background:#fca5a5;border-color:#b91c1c} .hl-good{background:#86efac;border-color:#15803d}
+.hl-bad::after{background:#b91c1c} .hl-good::after{background:#15803d} .hl-key::after{background:#92400e}
+@media (max-width:1100px){.grp.has-y{display:block} .yp{margin-top:8px}}
+@media print{.yp{break-inside:avoid} .hl{-webkit-print-color-adjust:exact;print-color-adjust:exact}} .cn{font-size:13px;font-weight:600;color:var(--accent);margin:0 0 4px}
+.ob{margin:6px 0 2px 22px;font-size:11.5px;color:var(--sub);font-weight:600}
+.grp .out{margin:0 0 0 22px;background:var(--outbg);color:var(--outfg);border-left:3px solid var(--line);border-radius:0 6px 6px 0;font-size:12.5px;opacity:1;padding:10px 14px}
+table{border-collapse:collapse;width:100%;margin:8px 0 16px;font-size:15px} td,th{border-bottom:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top} th{color:var(--sub);font-weight:500}
+code{font-family:var(--mono);font-size:.92em}
+.cmd{position:relative;margin:8px 0}
+.cmd pre,.out{margin:0;background:var(--code);color:var(--codefg);font:14px/1.5 var(--mono);padding:12px 70px 12px 14px;border-radius:8px;overflow-x:auto;white-space:pre}
+.out{padding-right:14px;font-size:13px;opacity:.92;white-space:pre-wrap;word-break:break-all}
+.cp{position:absolute;top:8px;right:8px;font:12px var(--font);background:#2c3a52;color:#eef2f8;border:0;border-radius:5px;padding:4px 9px}
+.cp.ok{background:var(--ok)}
+details{margin:10px 0} summary{cursor:pointer;color:var(--sub);font-size:14px}
+.chk{display:inline-flex;gap:8px;align-items:center;margin:14px 0 0;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer;font-size:15px}
+.page.step.isdone .chk{border-color:var(--ok);color:var(--ok)}
+.pager{position:fixed;left:var(--side);right:0;bottom:0;z-index:10;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 32px;background:var(--card);border-top:1px solid var(--line)}
+.pager .track{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden;max-width:520px}
+.pager .fill{height:100%;width:0;background:var(--ok)}
+#next{background:var(--accent);border-color:var(--accent);color:#fff}
+.note{font-size:14px;color:var(--sub)}
+#todo a{color:var(--accent)}
+@media (max-width:900px){
+  #navbtn{display:inline-block}
+  nav{transform:translateX(-100%);transition:transform .15s;width:min(86vw,var(--side));box-shadow:0 0 0 100vmax rgba(0,0,0,0);}
+  body.navopen nav{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.35)}
+  main{margin-left:0;padding:72px 16px 110px}
+  .pager{left:0;padding:10px 16px}
+  .top h1{font-size:15px}
+  #clr{padding:6px 8px;font-size:12px}
+}
+@media print{.top,nav,.pager{display:none} main{margin:0;padding:0} .page{display:block!important;page-break-after:always}}
+</style>
+</head>
+<body>
+<div class="top">
+  <button type="button" id="navbtn" aria-controls="nav" aria-expanded="false">목차</button>
+  <h1>KCA 23 실습 · Autogen</h1><span class="sp"></span><span class="pos" id="pos"></span>
+  <button type="button" id="clr" title="체크와 현재 위치 초기화">진행 초기화</button>
+</div>
+<nav id="nav" aria-label="실습 단계">
+  <ul>
+    <li class="extra"><a href="#overview" data-page="overview"><span class="mk" aria-hidden="true" style="visibility:hidden"></span>개요</a></li>
+    <li class="sec"><span>준비</span><ol><li><a href="#step-1" data-page="step-1" data-k="prep-A1"><span class="mk" aria-hidden="true"></span><span class="nn">A1</span> 자료 받기</a></li><li><a href="#step-2" data-page="step-2" data-k="prep-A1b"><span class="mk" aria-hidden="true"></span><span class="nn">A1b</span> 자료 받기 대안: git clone</a></li><li><a href="#step-3" data-page="step-3" data-k="prep-A2"><span class="mk" aria-hidden="true"></span><span class="nn">A2</span> 도구 확인</a></li><li><a href="#step-4" data-page="step-4" data-k="prep-A3"><span class="mk" aria-hidden="true"></span><span class="nn">A3</span> 환경 만들기</a></li><li><a href="#step-5" data-page="step-5" data-k="prep-A4"><span class="mk" aria-hidden="true"></span><span class="nn">A4</span> 이 터미널을 실습 클러스터에 연결</a></li></ol></li><li class="sec"><span>실습 · v1.19 레거시 ClusterPolicy</span><ol><li><a href="#step-6" data-page="step-6" data-k="legacy-0"><span class="mk" aria-hidden="true"></span><span class="nn">0</span> 정책 없이 02·08·07 제출</a></li><li><a href="#step-7" data-page="step-7" data-k="legacy-1"><span class="mk" aria-hidden="true"></span><span class="nn">1</span> 정책 적용 · 08 Pod 제출</a></li><li><a href="#step-8" data-page="step-8" data-k="legacy-2"><span class="mk" aria-hidden="true"></span><span class="nn">2</span> 자동 생성 규칙 확인</a></li><li><a href="#step-9" data-page="step-9" data-k="legacy-3"><span class="mk" aria-hidden="true"></span><span class="nn">3</span> 02 Deployment 제출</a></li><li><a href="#step-10" data-page="step-10" data-k="legacy-4"><span class="mk" aria-hidden="true"></span><span class="nn">4</span> 고정 태그 Deployment 허용</a></li><li><a href="#step-11" data-page="step-11" data-k="legacy-5"><span class="mk" aria-hidden="true"></span><span class="nn">5</span> 주석 none</a></li><li><a href="#step-12" data-page="step-12" data-k="legacy-6"><span class="mk" aria-hidden="true"></span><span class="nn">6</span> none 상태에서 02 제출</a></li><li><a href="#step-13" data-page="step-13" data-k="legacy-7"><span class="mk" aria-hidden="true"></span><span class="nn">7</span> web-latest 상태</a></li><li><a href="#step-14" data-page="step-14" data-k="legacy-8"><span class="mk" aria-hidden="true"></span><span class="nn">8</span> selector 생략 조건</a></li><li><a href="#step-15" data-page="step-15" data-k="legacy-9"><span class="mk" aria-hidden="true"></span><span class="nn">9</span> metadata 패턴 변환</a></li><li><a href="#step-16" data-page="step-16" data-k="legacy-10"><span class="mk" aria-hidden="true"></span><span class="nn">10</span> 07 Deployment 제출</a></li><li><a href="#step-17" data-page="step-17" data-k="A-과제"><span class="mk" aria-hidden="true"></span><span class="nn">과제</span> 실습 과제 KCA-D5-009</a></li><li><a href="#step-18" data-page="step-18" data-k="A-판정"><span class="mk" aria-hidden="true"></span><span class="nn">판정</span> 자동 판정(선택)</a></li></ol></li><li class="sec"><span>끝내기</span><ol><li><a href="#step-19" data-page="step-19" data-k="A-정리"><span class="mk" aria-hidden="true"></span><span class="nn">정리</span> 정리</a></li></ol></li>
+    <li class="sec"><span>마무리</span><ol class="extra">
+      <li><a href="#done" data-page="done"><span class="mk" aria-hidden="true" style="visibility:hidden"></span>완료</a></li>
+      <li><a href="#trouble" data-page="trouble"><span class="mk" aria-hidden="true" style="visibility:hidden"></span>문제 해결</a></li>
+    </ol></li>
+  </ul>
+</nav>
+<main>
+<p class="note">Kyverno 정책 실습 – KCA 시험 대비. 본 자료는 Linux Foundation·CNCF와 무관한 독립 교육자료입니다.</p>
+<section class="page" id="overview" data-title="개요"><h2 tabindex="-1">개요</h2><table>
+<tr><th>항목</th><th>값</th></tr>
+<tr><td>배포 변수</td><td><code>LAB_REPO=jangh-lee/cloudnative-cert-labs</code> · <code>LAB_VER=v2026.11.25</code></td></tr>
+<tr><td>목표</td><td>같은 latest Deployment가 정책 없음 · 주석 none · 기본값에서 실행 · Pod 0개 · 거부로 바뀌는 것을 출력으로 확인</td></tr>
+<tr><td>범위</td><td>v1.19 레거시 ClusterPolicy, 단계 0~10 + 과제, 클러스터 <code>kca23</code></td></tr>
+<tr><td>버전</td><td>kind v0.33.0 · node v1.35.8 · Kyverno v1.19.2(chart 3.9.2) 고정</td></tr>
+<tr><td>필요 도구</td><td>Docker(4GiB 이상), kind, kubectl 1.34+, helm 3.14+ · macOS 또는 Linux</td></tr>
+<tr><td>시간</td><td>준비 약 2분, 실습 약 15분</td></tr>
+<tr><td>네트워크</td><td>가이드는 오프라인 열람, setup은 node 이미지·chart 다운로드 필요</td></tr>
+<tr><td>격리</td><td>전용 kubeconfig <code>~/.kca-lab/</code>, 기존 클러스터·<code>~/.kube/config</code>·현재 context 변경 없음</td></tr>
+<tr><td>검증</td><td>2026-11-25 아래 명령·출력 그대로 실행 확인</td></tr>
+</table></section>
+<section class="page step" id="step-1" data-k="prep-A1" data-title="자료 받기"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A1</span> 자료 받기 </h2></header><p class="eff">공개 저장소 릴리스의 KCA_23_lab.zip을 받아 풀면 실습 폴더 KCA_23가 생긴다.</p><div class="grp"><div class="cn">저장소·버전 지정</div><div class="cmd"><pre><code>export LAB_REPO=&#x27;jangh-lee/cloudnative-cert-labs&#x27; LAB_VER=&#x27;v2026.11.25&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">(출력 없음)</pre></div><div class="grp"><div class="cn">릴리스 zip 받기·해시 확인</div><div class="cmd"><pre><code>curl -fsSLO https://github.com/${LAB_REPO}/releases/download/${LAB_VER}/KCA_23_lab.zip
+shasum -a 256 KCA_23_lab.zip</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">&lt;64자리 sha256&gt;  KCA_23_lab.zip   # 릴리스 페이지 값과 같아야 함</pre></div><div class="grp"><div class="cn">압축 풀고 폴더로 이동</div><div class="cmd"><pre><code>unzip KCA_23_lab.zip
+cd KCA_23 &amp;&amp; ls</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">Archive:  KCA_23_lab.zip
+   creating: KCA_23
+  inflating: KCA_23/00-namespace.yaml
+  ...
+00-namespace.yaml
+01-cpol-disallow-latest.yaml
+02-deploy-latest.yaml
+03-deploy-pinned.yaml
+04-cpol-autogen-none.yaml
+05-cpol-selector.yaml
+06-cpol-namespace.yaml
+07-deploy-ns.yaml
+08-pod-latest.yaml
+README.md
+env.sh
+guide.html
+lib.sh
+manifest.yaml
+reset.sh
+setup.sh
+teardown.sh
+verify.sh</pre></div><p class="stuck">막힐 때: curl 404면 LAB_REPO·LAB_VER 확인, 안 되면 아래 git clone</p><label class="chk"><input type="checkbox" data-k="prep-A1"> 이 단계 완료</label></section>
+<section class="page step" id="step-2" data-k="prep-A1b" data-title="자료 받기 대안: git clone"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A1b</span> 자료 받기 대안: git clone </h2></header><p class="eff">릴리스 zip 대신 저장소를 받아도 같은 KCA_23 폴더를 쓴다(선택).</p><div class="grp"><div class="cn">저장소 받기·실습 폴더로 이동</div><div class="cmd"><pre><code>git clone --depth 1 https://github.com/${LAB_REPO}.git
+cd &quot;$(basename &quot;$LAB_REPO&quot;)/KCA/KCA_23&quot; &amp;&amp; ls</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">Cloning into &#x27;cloudnative-cert-labs&#x27;...
+00-namespace.yaml
+01-cpol-disallow-latest.yaml
+02-deploy-latest.yaml
+03-deploy-pinned.yaml
+04-cpol-autogen-none.yaml
+05-cpol-selector.yaml
+06-cpol-namespace.yaml
+07-deploy-ns.yaml
+08-pod-latest.yaml
+README.md
+env.sh
+guide.html
+lib.sh
+manifest.yaml
+reset.sh
+setup.sh
+teardown.sh
+verify.sh</pre></div><label class="chk"><input type="checkbox" data-k="prep-A1b"> 이 단계 완료</label></section>
+<section class="page step" id="step-3" data-k="prep-A2" data-title="도구 확인"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A2</span> 도구 확인 </h2></header><p class="eff">Docker·kind·kubectl·helm이 설치되어 있어야 setup이 동작한다.</p><div class="grp"><div class="cn">도구 버전 확인</div><div class="cmd"><pre><code>docker version --format &#x27;{{.Server.Version}}&#x27;
+kind version
+kubectl version --client
+helm version --short</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">29.5.2
+kind v0.33.0 go1.27.1 darwin/arm64
+Client Version: v1.37.2
+Kustomize Version: v5.8.1
+v4.3.2+g8346aaa</pre></div><p class="stuck">막힐 때: 기준: Docker 4GiB+, kind v0.33.0, kubectl 1.34+, helm 3.14+</p><label class="chk"><input type="checkbox" data-k="prep-A2"> 이 단계 완료</label></section>
+<section class="page step" id="step-4" data-k="prep-A3" data-title="환경 만들기"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A3</span> 환경 만들기 </h2></header><p class="eff">setup.sh가 kind 클러스터 kca23와 Kyverno v1.19.2(chart 3.9.2)를 설치한다(v1.20 이상은 이 실습 정책 미실행).</p><div class="grp"><div class="cn">클러스터·Kyverno 설치</div><div class="cmd"><pre><code>./setup.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">==&gt; 도구 점검 (Darwin)
+    kind v0.33.0 · kubectl v1.37.2 · helm v4.3.2 · docker 29.5.2
+==&gt; inotify 점검
+    max_user_instances=512
+==&gt; kind 클러스터 kca23
+==&gt; Kyverno v1.19.2 설치 (chart 3.9.2)
+    reg.kyverno.io/kyverno/kyverno:v1.19.2
+==&gt; 정책 webhook 대기
+==&gt; 실습 Namespace kca23
+준비 완료: kca23 (Kyverno v1.19.2)
+다음: source ./env.sh
+주의: Kyverno v1.20 이상은 이 실습의 ClusterPolicy를 실행하지 않음. setup.sh가 고정한 v1.19.2만 사용</pre></div><p class="stuck">막힐 때: ERROR 줄 안내대로 고친 뒤 재실행</p><label class="chk"><input type="checkbox" data-k="prep-A3"> 이 단계 완료</label></section>
+<section class="page step" id="step-5" data-k="prep-A4" data-title="이 터미널을 실습 클러스터에 연결"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A4</span> 이 터미널을 실습 클러스터에 연결 </h2></header><p class="eff">현재 터미널의 kubectl을 실습 클러스터에 연결한다(새 터미널마다 다시).</p><div class="grp"><div class="cn">현재 터미널 연결</div><div class="cmd"><pre><code>source ./env.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">KUBECONFIG=~/.kca-lab/kca23.kubeconfig  context=kind-kca23  dir=.../KCA_23</pre></div><p class="stuck">막힐 때: kubeconfig 없음·context 불일치면 ./setup.sh 재실행</p><label class="chk"><input type="checkbox" data-k="prep-A4"> 이 단계 완료</label></section>
+<section class="page step" id="step-6" data-k="legacy-0" data-title="정책 없이 02·08·07 제출"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">0</span> 정책 없이 02·08·07 제출 <span class="bd bd-before">적용 전</span><span class="bdt">정책 없음</span></h2><span class="sl">슬라이드 S04</span></header><p class="eff">정책이 없으면 같은 예제 파일 3개(02·08·07)가 모두 생성된다.</p><div class="grp has-y"><div class="gl"><div class="cn">정책 없이 Deployment 생성·상태 확인</div><div class="cmd"><pre><code>kubectl apply -f 02-deploy-latest.yaml
+kubectl -n kca23 rollout status deploy/web-latest --timeout=180s
+kubectl -n kca23 get deploy web-latest</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">deployment.apps/web-latest created
+deployment &quot;web-latest&quot; successfully rolled out
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+web-latest   1/1     1            1           3s</pre></div><div class="gy"><details class="yp" open data-file="02-deploy-latest.yaml" data-sha="296ff68b4d2fccca0f10b612ed255bbf4359caa53425fbb041af66dcacd4e70a"><summary>YAML 보기 · 02-deploy-latest.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> apps/v1</span>
+<span class="yk">kind</span>:<span class="ys"> Deployment</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> web-latest</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca23</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">replicas</span>:<span class="ys"> 1</span>
+  <span class="yk">selector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app</span>:<span class="ys"> web-latest</span>
+  <span class="yk">template</span>:
+    <span class="yk">metadata</span>:
+      <span class="yk">labels</span>:
+        <span class="yk">app</span>:<span class="ys"> web-latest</span>
+    <span class="yk">spec</span>:
+      <span class="yk">containers</span>:
+        - <span class="yk">name</span>:<span class="ys"> web</span>
+<span class="hl hl-bad" data-n="← 문제: latest 태그">          <span class="yk">image</span>:<span class="ys"> nginx:latest</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp has-y"><div class="gl"><div class="cn">정책 없이 Pod 생성·Ready 대기</div><div class="cmd"><pre><code>kubectl apply -f 08-pod-latest.yaml
+kubectl -n kca23 wait --for=condition=Ready pod/bare-latest --timeout=120s</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">pod/bare-latest created
+pod/bare-latest condition met</pre></div><div class="gy"><details class="yp" open data-file="08-pod-latest.yaml" data-sha="f2cb3ab9537de316c4bfdf9fc22d3bff29379721c333e58617b26f65be5e6f2a"><summary>YAML 보기 · 08-pod-latest.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> bare-latest</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca23</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> web</span>
+<span class="hl hl-bad" data-n="← 문제: latest 태그">      <span class="yk">image</span>:<span class="ys"> nginx:latest</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp has-y"><div class="gl"><div class="cn">정책 없이 web-ns Deployment 생성</div><div class="cmd"><pre><code>kubectl apply -f 07-deploy-ns.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">deployment.apps/web-ns created</pre></div><div class="gy"><details class="yp" open data-file="07-deploy-ns.yaml" data-sha="f86ee78da3cbc34164595d15cd1f6bc71918a30144b605cabaaec12e5e9654ff"><summary>YAML 보기 · 07-deploy-ns.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> apps/v1</span>
+<span class="yk">kind</span>:<span class="ys"> Deployment</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> web-ns</span>
+<span class="hl hl-key" data-n="← 겉면 Namespace">  <span class="yk">namespace</span>:<span class="ys"> kca23</span></span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">replicas</span>:<span class="ys"> 1</span>
+  <span class="yk">selector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app</span>:<span class="ys"> web-ns</span>
+<span class="hl hl-bad" data-n="← 템플릿에는 namespace 없음">  <span class="yk">template</span>:</span>
+    <span class="yk">metadata</span>:
+      <span class="yk">labels</span>:
+        <span class="yk">app</span>:<span class="ys"> web-ns</span>
+    <span class="yk">spec</span>:
+      <span class="yk">containers</span>:
+        - <span class="yk">name</span>:<span class="ys"> web</span>
+          <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp has-y"><div class="gl"><div class="cn">세 리소스 삭제</div><div class="cmd"><pre><code>kubectl delete -f 02-deploy-latest.yaml -f 08-pod-latest.yaml -f 07-deploy-ns.yaml --cascade=foreground --wait=true</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">deployment.apps &quot;web-latest&quot; deleted from kca23 namespace
+pod &quot;bare-latest&quot; deleted from kca23 namespace
+deployment.apps &quot;web-ns&quot; deleted from kca23 namespace</pre></div><div class="gy"><details class="yp" open data-file="02-deploy-latest.yaml" data-sha="296ff68b4d2fccca0f10b612ed255bbf4359caa53425fbb041af66dcacd4e70a"><summary>YAML 보기 · 02-deploy-latest.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> apps/v1</span>
+<span class="yk">kind</span>:<span class="ys"> Deployment</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> web-latest</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca23</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">replicas</span>:<span class="ys"> 1</span>
+  <span class="yk">selector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app</span>:<span class="ys"> web-latest</span>
+  <span class="yk">template</span>:
+    <span class="yk">metadata</span>:
+      <span class="yk">labels</span>:
+        <span class="yk">app</span>:<span class="ys"> web-latest</span>
+    <span class="yk">spec</span>:
+      <span class="yk">containers</span>:
+        - <span class="yk">name</span>:<span class="ys"> web</span>
+<span class="hl hl-bad" data-n="← 문제: latest 태그">          <span class="yk">image</span>:<span class="ys"> nginx:latest</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details><details class="yp" open data-file="08-pod-latest.yaml" data-sha="f2cb3ab9537de316c4bfdf9fc22d3bff29379721c333e58617b26f65be5e6f2a"><summary>YAML 보기 · 08-pod-latest.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> bare-latest</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca23</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> web</span>
+<span class="hl hl-bad" data-n="← 문제: latest 태그">      <span class="yk">image</span>:<span class="ys"> nginx:latest</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details><details class="yp" open data-file="07-deploy-ns.yaml" data-sha="f86ee78da3cbc34164595d15cd1f6bc71918a30144b605cabaaec12e5e9654ff"><summary>YAML 보기 · 07-deploy-ns.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> apps/v1</span>
+<span class="yk">kind</span>:<span class="ys"> Deployment</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> web-ns</span>
+<span class="hl hl-key" data-n="← 겉면 Namespace">  <span class="yk">namespace</span>:<span class="ys"> kca23</span></span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">replicas</span>:<span class="ys"> 1</span>
+  <span class="yk">selector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app</span>:<span class="ys"> web-ns</span>
+<span class="hl hl-bad" data-n="← 템플릿에는 namespace 없음">  <span class="yk">template</span>:</span>
+    <span class="yk">metadata</span>:
+      <span class="yk">labels</span>:
+        <span class="yk">app</span>:<span class="ys"> web-ns</span>
+    <span class="yk">spec</span>:
+      <span class="yk">containers</span>:
+        - <span class="yk">name</span>:<span class="ys"> web</span>
+          <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: rollout 시간 초과면 같은 명령 재실행</p><label class="chk"><input type="checkbox" data-k="legacy-0"> 이 단계 완료</label></section>
+<section class="page step" id="step-7" data-k="legacy-1" data-title="정책 적용 · 08 Pod 제출"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">1</span> 정책 적용 · 08 Pod 제출 <span class="bd bd-after">적용 후</span><span class="bdt">정책 적용</span></h2><span class="sl">슬라이드 S04</span></header><p class="eff">정책을 적용하면 kca23에서 latest 이미지 Pod의 생성 요청이 거부된다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>정책 없음 (0단계) · 생성됨<br><code>pod/bare-latest created</code></td><td>정책 적용 · 거부됨<br><code>resource Pod/kca23/bare-latest was blocked</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">정책 생성·Ready 대기</div><div class="cmd"><pre><code>kubectl apply -f 01-cpol-disallow-latest.yaml
+kubectl wait --for=condition=Ready clusterpolicy/kca23-disallow-latest --timeout=60s</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">clusterpolicy.kyverno.io/kca23-disallow-latest created
+clusterpolicy.kyverno.io/kca23-disallow-latest condition met</pre></div><div class="gy"><details class="yp" open data-file="01-cpol-disallow-latest.yaml" data-sha="96467a060c71bf255a9174ba085817e9419ebb2fda101b35ff5ed8036f0ac627"><summary>YAML 보기 · 01-cpol-disallow-latest.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca23-disallow-latest</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+    - <span class="yk">name</span>:<span class="ys"> image-tag</span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+<span class="hl hl-key" data-n="← 핵심: 검사 대상 Pod">                - Pod</span>
+              <span class="yk">namespaces</span>:
+                - kca23
+      <span class="yk">validate</span>:
+<span class="hl hl-key" data-n="← 핵심: 위반 시 거부">        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span></span>
+        <span class="yk">message</span>:<span class="ys"> &quot;latest 태그 금지&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">spec</span>:
+            <span class="yk">containers</span>:
+<span class="hl hl-key" data-n="← 핵심: latest 금지">              - <span class="yk">image</span>:<span class="ys"> &quot;!*:latest&quot;</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp has-y"><div class="gl"><div class="cn">latest Pod 다시 제출</div><div class="cmd"><pre><code>kubectl apply -f 08-pod-latest.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">Error from server: error when creating &quot;08-pod-latest.yaml&quot;: admission webhook &quot;validate.kyverno.svc-fail&quot; denied the request: 
+
+resource Pod/kca23/bare-latest was blocked due to the following policies 
+
+kca23-disallow-latest:
+  image-tag: &#x27;validation error: latest 태그 금지. rule image-tag failed at path /spec/containers/0/image/&#x27;</pre></div><div class="gy"><details class="yp" open data-file="08-pod-latest.yaml" data-sha="f2cb3ab9537de316c4bfdf9fc22d3bff29379721c333e58617b26f65be5e6f2a"><summary>YAML 보기 · 08-pod-latest.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> bare-latest</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca23</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> web</span>
+<span class="hl hl-bad" data-n="← 문제: latest 태그">      <span class="yk">image</span>:<span class="ys"> nginx:latest</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: condition met가 없으면 kubectl -n kyverno get pods 확인</p><label class="chk"><input type="checkbox" data-k="legacy-1"> 이 단계 완료</label></section>
+<section class="page step" id="step-8" data-k="legacy-2" data-title="자동 생성 규칙 확인"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">2</span> 자동 생성 규칙 확인 <span class="bd bd-after">적용 후</span><span class="bdt">정책 적용</span></h2><span class="sl">슬라이드 S09</span></header><p class="eff">status.autogen.rules에서 Kyverno가 만든 자동 규칙의 이름과 대상을 확인한다.</p><div class="grp"><div class="cn">자동 생성된 규칙 조회</div><div class="cmd"><pre><code>kubectl get clusterpolicy kca23-disallow-latest -o jsonpath=&#x27;{range .status.autogen.rules[*]}{.name}{&quot;  &quot;}{.match.any[0].resources.kinds}{&quot;\n&quot;}{end}&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">autogen-image-tag  [&quot;apps/v1/DaemonSet&quot;,&quot;apps/v1/Deployment&quot;,&quot;batch/v1/Job&quot;,&quot;apps/v1/ReplicaSet&quot;,&quot;v1/ReplicationController&quot;,&quot;apps/v1/StatefulSet&quot;]
+autogen-cronjob-image-tag  [&quot;batch/v1/CronJob&quot;]</pre></div><p class="stuck">막힐 때: 출력이 비면 몇 초 뒤 재조회</p><label class="chk"><input type="checkbox" data-k="legacy-2"> 이 단계 완료</label></section>
+<section class="page step" id="step-9" data-k="legacy-3" data-title="02 Deployment 제출"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">3</span> 02 Deployment 제출 <span class="bd bd-after">적용 후</span><span class="bdt">Autogen 기본값</span></h2><span class="sl">슬라이드 S06</span></header><p class="eff">이 정책에서 Autogen 기본값이면 web-latest Deployment 생성 요청부터 거부된다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>정책 없음 (0단계) · 생성됨<br><code>deployment.apps/web-latest created</code></td><td>기본값 · 거부됨<br><code>resource Deployment/kca23/web-latest was blocked</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">latest Deployment 제출</div><div class="cmd"><pre><code>kubectl apply -f 02-deploy-latest.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">Error from server: error when creating &quot;02-deploy-latest.yaml&quot;: admission webhook &quot;validate.kyverno.svc-fail&quot; denied the request: 
+
+resource Deployment/kca23/web-latest was blocked due to the following policies 
+
+kca23-disallow-latest:
+  autogen-image-tag: &#x27;validation error: latest 태그 금지. rule autogen-image-tag failed at path /spec/template/spec/containers/0/image/&#x27;</pre></div><div class="gy"><details class="yp" open data-file="02-deploy-latest.yaml" data-sha="296ff68b4d2fccca0f10b612ed255bbf4359caa53425fbb041af66dcacd4e70a"><summary>YAML 보기 · 02-deploy-latest.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> apps/v1</span>
+<span class="yk">kind</span>:<span class="ys"> Deployment</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> web-latest</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca23</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">replicas</span>:<span class="ys"> 1</span>
+  <span class="yk">selector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app</span>:<span class="ys"> web-latest</span>
+  <span class="yk">template</span>:
+    <span class="yk">metadata</span>:
+      <span class="yk">labels</span>:
+        <span class="yk">app</span>:<span class="ys"> web-latest</span>
+    <span class="yk">spec</span>:
+      <span class="yk">containers</span>:
+        - <span class="yk">name</span>:<span class="ys"> web</span>
+<span class="hl hl-bad" data-n="← 문제: latest 태그">          <span class="yk">image</span>:<span class="ys"> nginx:latest</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: created가 나오면 1단계 정책 Ready 확인, 잔여물이면 ./reset.sh</p><label class="chk"><input type="checkbox" data-k="legacy-3"> 이 단계 완료</label></section>
+<section class="page step" id="step-10" data-k="legacy-4" data-title="고정 태그 Deployment 허용"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">4</span> 고정 태그 Deployment 허용 <span class="bd bd-after">적용 후</span><span class="bdt">정책 적용</span></h2><span class="sl">슬라이드 S06</span></header><p class="eff">이 정책에서 nginx:1.27 Deployment 생성 요청은 통과한다.</p><div class="grp has-y"><div class="gl"><div class="cn">nginx:1.27 Deployment 제출</div><div class="cmd"><pre><code>kubectl apply -f 03-deploy-pinned.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">deployment.apps/web-pinned created</pre></div><div class="gy"><details class="yp" open data-file="03-deploy-pinned.yaml" data-sha="2e805a3b046ea96aeb17cf3f94f858ab7f203dd7a4c12ed877a9efbc7f4d3ff8"><summary>YAML 보기 · 03-deploy-pinned.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> apps/v1</span>
+<span class="yk">kind</span>:<span class="ys"> Deployment</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> web-pinned</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca23</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">replicas</span>:<span class="ys"> 1</span>
+  <span class="yk">selector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app</span>:<span class="ys"> web-pinned</span>
+  <span class="yk">template</span>:
+    <span class="yk">metadata</span>:
+      <span class="yk">labels</span>:
+        <span class="yk">app</span>:<span class="ys"> web-pinned</span>
+    <span class="yk">spec</span>:
+      <span class="yk">containers</span>:
+        - <span class="yk">name</span>:<span class="ys"> web</span>
+<span class="hl hl-good" data-n="← 해결: 고정 태그">          <span class="yk">image</span>:<span class="ys"> nginx:1.27</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: unchanged면 이미 만든 상태</p><label class="chk"><input type="checkbox" data-k="legacy-4"> 이 단계 완료</label></section>
+<section class="page step" id="step-11" data-k="legacy-5" data-title="주석 none"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">5</span> 주석 none <span class="bd bd-before">적용 전</span><span class="bdt">Autogen 끔(none)</span></h2><span class="sl">슬라이드 S06</span></header><p class="eff">주석 none을 붙이면 컨트롤러용 자동 규칙이 0개가 된다(Pod 규칙은 유지).</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>주석 없음 (2단계) · 규칙 2개<br><code>autogen-cronjob-image-tag  [&quot;batch/v1/CronJob&quot;]</code></td><td>none · 규칙 0개<br><code>{}</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">주석 none 적용·status 확인</div><div class="cmd"><pre><code>kubectl apply -f 04-cpol-autogen-none.yaml
+sleep 5; kubectl get clusterpolicy kca23-disallow-latest -o jsonpath=&#x27;{.status.autogen}{&quot;\n&quot;}&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">clusterpolicy.kyverno.io/kca23-disallow-latest configured
+{}</pre></div><div class="gy"><details class="yp" open data-file="04-cpol-autogen-none.yaml" data-sha="7fdd27dc21199474ec18bdb509ff6866b7d0562dad51bff960a1b8545089ae6d"><summary>YAML 보기 · 04-cpol-autogen-none.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca23-disallow-latest</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+  <span class="yk">annotations</span>:
+<span class="hl hl-key" data-n="← 핵심: 자동 규칙 끔">    <span class="yk">pod-policies.kyverno.io/autogen-controllers</span>:<span class="ys"> none</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+    - <span class="yk">name</span>:<span class="ys"> image-tag</span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca23
+      <span class="yk">validate</span>:
+        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span>
+        <span class="yk">message</span>:<span class="ys"> &quot;latest 태그 금지&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">spec</span>:
+            <span class="yk">containers</span>:
+              - <span class="yk">image</span>:<span class="ys"> &quot;!*:latest&quot;</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: 규칙이 보이면 몇 초 뒤 재조회</p><label class="chk"><input type="checkbox" data-k="legacy-5"> 이 단계 완료</label></section>
+<section class="page step" id="step-12" data-k="legacy-6" data-title="none 상태에서 02 제출"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">6</span> none 상태에서 02 제출 <span class="bd bd-before">적용 전</span><span class="bdt">Autogen 끔(none)</span></h2><span class="sl">슬라이드 S06</span></header><p class="eff">none이면 web-latest Deployment는 생성되고 Pod 생성 요청만 거부된다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>기본값 (3단계) · Deployment 거부<br><code>resource Deployment/kca23/web-latest was blocked</code></td><td>none · Deployment 생성, Pod 거부<br><code>deployment.apps/web-latest created</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">latest Deployment 다시 제출</div><div class="cmd"><pre><code>kubectl apply -f 02-deploy-latest.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">deployment.apps/web-latest created</pre></div><div class="gy"><details class="yp" open data-file="02-deploy-latest.yaml" data-sha="296ff68b4d2fccca0f10b612ed255bbf4359caa53425fbb041af66dcacd4e70a"><summary>YAML 보기 · 02-deploy-latest.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> apps/v1</span>
+<span class="yk">kind</span>:<span class="ys"> Deployment</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> web-latest</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca23</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">replicas</span>:<span class="ys"> 1</span>
+  <span class="yk">selector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app</span>:<span class="ys"> web-latest</span>
+  <span class="yk">template</span>:
+    <span class="yk">metadata</span>:
+      <span class="yk">labels</span>:
+        <span class="yk">app</span>:<span class="ys"> web-latest</span>
+    <span class="yk">spec</span>:
+      <span class="yk">containers</span>:
+        - <span class="yk">name</span>:<span class="ys"> web</span>
+<span class="hl hl-bad" data-n="← 문제: latest 태그">          <span class="yk">image</span>:<span class="ys"> nginx:latest</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp"><div class="cn">ReplicaSet 거부 이벤트 조회</div><div class="cmd"><pre><code>sleep 10; kubectl -n kca23 get events --field-selector reason=FailedCreate,involvedObject.kind=ReplicaSet
+kubectl -n kca23 get events --field-selector reason=FailedCreate,involvedObject.kind=ReplicaSet -o jsonpath=&#x27;{.items[0].message}{&quot;\n&quot;}&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">LAST SEEN   TYPE      REASON         OBJECT                             MESSAGE
+11s         Warning   FailedCreate   replicaset/web-latest-7b647dc898   Error creating: admission webhook &quot;validate.kyverno.svc-fail&quot; denied the request: ...
+11s         Warning   FailedCreate   replicaset/web-latest-7b647dc898   Error creating: admission webhook &quot;validate.kyverno.svc-fail&quot; denied the request: ...
+...
+Error creating: admission webhook &quot;validate.kyverno.svc-fail&quot; denied the request: 
+
+resource Pod/kca23/web-latest-7b647dc898-c2p7z was blocked due to the following policies 
+
+kca23-disallow-latest:
+  image-tag: &#x27;validation error: latest 태그 금지. rule image-tag failed at path /spec/containers/0/image/&#x27;</pre></div><p class="stuck">막힐 때: 이벤트가 없으면 10초 뒤 재조회</p><label class="chk"><input type="checkbox" data-k="legacy-6"> 이 단계 완료</label></section>
+<section class="page step" id="step-13" data-k="legacy-7" data-title="web-latest 상태"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">7</span> web-latest 상태 <span class="bd bd-before">적용 전</span><span class="bdt">Autogen 끔(none)</span></h2><span class="sl">슬라이드 S06</span></header><p class="eff">none에서는 Pod 생성 요청이 막혀 준비된 복제본이 0/1이다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>정책 없음 (0단계) · 1개 준비<br><code>web-latest   1/1</code></td><td>none · 준비 0개<br><code>web-latest   0/1</code></td></tr></table><div class="grp"><div class="cn">Deployment 상태 확인</div><div class="cmd"><pre><code>kubectl -n kca23 get deploy web-latest</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+web-latest   0/1     0            0           11s</pre></div><label class="chk"><input type="checkbox" data-k="legacy-7"> 이 단계 완료</label></section>
+<section class="page step" id="step-14" data-k="legacy-8" data-title="selector 생략 조건"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">8</span> selector 생략 조건 <span class="bd bd-after">적용 후</span><span class="bdt">selector</span></h2><span class="sl">슬라이드 S12</span></header><p class="eff">Pod 규칙에 selector(tier: web)를 넣으면 이 정책의 자동 규칙은 생기지 않는다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>selector 없음 (2단계) · 규칙 2개<br><code>autogen-cronjob-image-tag  [&quot;batch/v1/CronJob&quot;]</code></td><td>selector · 규칙 0개<br><code>{}</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">selector 정책 생성·자동 규칙 조회</div><div class="cmd"><pre><code>kubectl apply -f 05-cpol-selector.yaml
+sleep 5; kubectl get clusterpolicy kca23-selector -o jsonpath=&#x27;{.status.autogen}{&quot;\n&quot;}&#x27;
+kubectl get clusterpolicy kca23-selector -o jsonpath=&#x27;{range .status.autogen.rules[*]}{.name}{&quot;  &quot;}{.match.any[0].resources.kinds}{&quot;\n&quot;}{end}&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">clusterpolicy.kyverno.io/kca23-selector created
+{}</pre></div><div class="gy"><details class="yp" open data-file="05-cpol-selector.yaml" data-sha="f4fd6c62aa247d9718c05180be88ee8c1b5578a0021f828eac3cc6436606d40e"><summary>YAML 보기 · 05-cpol-selector.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca23-selector</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+    - <span class="yk">name</span>:<span class="ys"> image-tag</span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca23
+<span class="hl hl-key" data-n="← 핵심: 자동 생성 생략 조건">              <span class="yk">selector</span>:</span>
+                <span class="yk">matchLabels</span>:
+<span class="hl hl-key" data-n="← Pod 라벨 조건">                  <span class="yk">tier</span>:<span class="ys"> web</span></span>
+      <span class="yk">validate</span>:
+        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span>
+        <span class="yk">message</span>:<span class="ys"> &quot;latest 태그 금지&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">spec</span>:
+            <span class="yk">containers</span>:
+              - <span class="yk">image</span>:<span class="ys"> &quot;!*:latest&quot;</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><label class="chk"><input type="checkbox" data-k="legacy-8"> 이 단계 완료</label></section>
+<section class="page step" id="step-15" data-k="legacy-9" data-title="metadata 패턴 변환"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">9</span> metadata 패턴 변환 <span class="bd bd-after">적용 후</span><span class="bdt">namespace 패턴</span></h2><span class="sl">슬라이드 S13</span></header><p class="eff">metadata.namespace 패턴은 Deployment용 자동 규칙에서 spec.template 안으로 옮겨진다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>원래 Pod 규칙<br><code>{&quot;metadata&quot;:{&quot;namespace&quot;:&quot;!default&quot;}}</code></td><td>Deployment용 자동 복사본<br><code>{&quot;spec&quot;:{&quot;template&quot;:{&quot;metadata&quot;:{&quot;namespace&quot;:&quot;!default&quot;}}}}</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">정책 생성·원래 패턴과 자동 규칙 패턴 조회</div><div class="cmd"><pre><code>kubectl apply -f 06-cpol-namespace.yaml
+kubectl get clusterpolicy kca23-no-default-ns -o jsonpath=&#x27;{.spec.rules[0].validate.pattern}{&quot;\n&quot;}&#x27;
+sleep 5; kubectl get clusterpolicy kca23-no-default-ns -o jsonpath=&#x27;{.status.autogen.rules[0].validate.pattern}{&quot;\n&quot;}&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">clusterpolicy.kyverno.io/kca23-no-default-ns created
+{&quot;metadata&quot;:{&quot;namespace&quot;:&quot;!default&quot;}}
+{&quot;spec&quot;:{&quot;template&quot;:{&quot;metadata&quot;:{&quot;namespace&quot;:&quot;!default&quot;}}}}</pre></div><div class="gy"><details class="yp" open data-file="06-cpol-namespace.yaml" data-sha="585324d603d5144893ffca63e899b0dc6c94b16456afbeaa09adca2e94238ae7"><summary>YAML 보기 · 06-cpol-namespace.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca23-no-default-ns</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+    - <span class="yk">name</span>:<span class="ys"> no-default</span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca23
+      <span class="yk">validate</span>:
+        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span>
+        <span class="yk">message</span>:<span class="ys"> &quot;default Namespace 금지&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">metadata</span>:
+<span class="hl hl-key" data-n="← 핵심: Pod metadata 조건">            <span class="yk">namespace</span>:<span class="ys"> &quot;!default&quot;</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: 출력이 비면 몇 초 뒤 재조회</p><label class="chk"><input type="checkbox" data-k="legacy-9"> 이 단계 완료</label></section>
+<section class="page step" id="step-16" data-k="legacy-10" data-title="07 Deployment 제출"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">10</span> 07 Deployment 제출 <span class="bd bd-after">적용 후</span><span class="bdt">namespace 패턴</span></h2><span class="sl">슬라이드 S13</span></header><p class="eff">web-ns는 kca23에 있어도 Pod 템플릿에 namespace가 없어 생성 요청이 거부된다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>정책 없음 (0단계) · 생성됨<br><code>deployment.apps/web-ns created</code></td><td>정책 적용 · 거부됨<br><code>resource Deployment/kca23/web-ns was blocked</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">web-ns Deployment 제출</div><div class="cmd"><pre><code>kubectl apply -f 07-deploy-ns.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">Error from server: error when creating &quot;07-deploy-ns.yaml&quot;: admission webhook &quot;validate.kyverno.svc-fail&quot; denied the request: 
+
+resource Deployment/kca23/web-ns was blocked due to the following policies 
+
+kca23-no-default-ns:
+  autogen-no-default: &#x27;validation error: default Namespace 금지. rule autogen-no-default failed at path /spec/template/metadata/namespace/&#x27;</pre></div><div class="gy"><details class="yp" open data-file="07-deploy-ns.yaml" data-sha="f86ee78da3cbc34164595d15cd1f6bc71918a30144b605cabaaec12e5e9654ff"><summary>YAML 보기 · 07-deploy-ns.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> apps/v1</span>
+<span class="yk">kind</span>:<span class="ys"> Deployment</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> web-ns</span>
+<span class="hl hl-key" data-n="← 겉면 Namespace">  <span class="yk">namespace</span>:<span class="ys"> kca23</span></span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca23</span>
+<span class="yk">spec</span>:
+  <span class="yk">replicas</span>:<span class="ys"> 1</span>
+  <span class="yk">selector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app</span>:<span class="ys"> web-ns</span>
+<span class="hl hl-bad" data-n="← 템플릿에는 namespace 없음">  <span class="yk">template</span>:</span>
+    <span class="yk">metadata</span>:
+      <span class="yk">labels</span>:
+        <span class="yk">app</span>:<span class="ys"> web-ns</span>
+    <span class="yk">spec</span>:
+      <span class="yk">containers</span>:
+        - <span class="yk">name</span>:<span class="ys"> web</span>
+          <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><label class="chk"><input type="checkbox" data-k="legacy-10"> 이 단계 완료</label></section>
+<section class="page step" id="step-17" data-k="A-과제" data-title="실습 과제 KCA-D5-009"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">과제</span> 실습 과제 KCA-D5-009 <span class="bd bd-after">적용 후</span><span class="bdt">주석 Deployment</span></h2></header><p class="eff">아래 조건의 my-deploy-only.yaml을 직접 써서 Deployment용 자동 규칙 하나만 만든다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>주석 없음 (2단계) · 규칙 2개<br><code>autogen-cronjob-image-tag  [&quot;batch/v1/CronJob&quot;]</code></td><td>Deployment · 규칙 1개<br><code>autogen-image-tag  [&quot;apps/v1/Deployment&quot;]</code></td></tr></table><table class="req"><tr><th>이름</th><td><code>kca23-deploy-only</code></td></tr><tr><th>라벨</th><td><code>lecture.kca/lab: kca23</code></td></tr><tr><th>규칙</th><td><code>image-tag, kinds Pod, namespaces kca23</code></td></tr><tr><th>패턴</th><td><code>spec.containers[].image &quot;!*:latest&quot;</code></td></tr><tr><th>동작</th><td><code>failureAction Enforce, background false</code></td></tr><tr><th>자동 규칙</th><td><code>Deployment만</code></td></tr></table><div class="grp"><div class="cn">내 정책 생성·자동 규칙과 설정 조회</div><div class="cmd"><pre><code>kubectl apply -f my-deploy-only.yaml
+sleep 5; kubectl get clusterpolicy kca23-deploy-only -o jsonpath=&#x27;{range .status.autogen.rules[*]}{.name}{&quot;  &quot;}{.match.any[0].resources.kinds}{&quot;\n&quot;}{end}&#x27;
+kubectl get clusterpolicy kca23-deploy-only -o jsonpath=&#x27;{.spec.rules[0].validate.failureAction} {.spec.rules[0].match.any[0].resources.namespaces[0]} {.spec.rules[0].validate.pattern.spec.containers[0].image} {.spec.background} {.metadata.labels.lecture\.kca/lab}{&quot;\n&quot;}&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">clusterpolicy.kyverno.io/kca23-deploy-only created
+Warning: Policies that match Pods apply to all Pods including those created and managed by controllers excluded from autogen. Use preconditions to exclude the Pods managed by controllers which are excluded from autogen. Refer to https://kyverno.io/docs/policy-types/cluster-policy/autogen/ for details.
+autogen-image-tag  [&quot;apps/v1/Deployment&quot;]
+Enforce kca23 !*:latest false kca23</pre></div><div class="grp"><div class="cn">자동 판정</div><div class="cmd"><pre><code>KCA_Q009_FILE=my-deploy-only.yaml ./verify.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">...
+PASS: 규칙 1개(Deployment만)
+...
+RESULT pass=48 fail=0</pre></div><p class="stuck">막힐 때: 규칙이 2개 이상이면 주석 값 확인</p><details><summary>풀이</summary><div class="cmd"><pre><code>apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kca23-deploy-only
+  labels:
+    lecture.kca/lab: kca23
+  annotations:
+    pod-policies.kyverno.io/autogen-controllers: Deployment
+spec:
+  background: false
+  rules:
+    - name: image-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - kca23
+      validate:
+        failureAction: Enforce
+        message: &quot;kca23 Namespace에서는 :latest 이미지를 쓸 수 없다.&quot;
+        pattern:
+          spec:
+            containers:
+              - image: &quot;!*:latest&quot;
+</code></pre><button class="cp" type="button">복사</button></div></details><label class="chk"><input type="checkbox" data-k="A-과제"> 이 단계 완료</label></section>
+<section class="page step" id="step-18" data-k="A-판정" data-title="자동 판정(선택)"><p class="crumb">실습 · v1.19 레거시 ClusterPolicy</p><header><h2 tabindex="-1"><span class="no">판정</span> 자동 판정(선택) </h2></header><p class="eff">0~10단계를 자동 실행해 fail=0이면 정상이다(답안 파일이 없으면 과제 판정 SKIP).</p><div class="grp"><div class="cn">전 단계 자동 판정</div><div class="cmd"><pre><code>./verify.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">...
+SKIP: 문항 풀이 파일 없음(학습자 패키지), KCA-D5-009 판정 생략
+
+RESULT pass=&lt;n&gt; fail=0</pre></div><label class="chk"><input type="checkbox" data-k="A-판정"> 이 단계 완료</label></section>
+<section class="page step" id="step-19" data-k="A-정리" data-title="정리"><p class="crumb">끝내기</p><header><h2 tabindex="-1"><span class="no">정리</span> 정리 </h2></header><p class="eff">reset은 실습 리소스만, teardown은 클러스터와 전용 kubeconfig까지 지운다.</p><div class="grp"><div class="cn">실습 리소스 초기화</div><div class="cmd"><pre><code>./reset.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">초기화 완료: kca23, Namespace kca23 비어 있음</pre></div><div class="grp"><div class="cn">클러스터 삭제</div><div class="cmd"><pre><code>./teardown.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">Deleting cluster &quot;kca23&quot; ...
+Deleted nodes: [&quot;kca23-control-plane&quot;]
+정리 완료</pre></div><label class="chk"><input type="checkbox" data-k="A-정리"> 이 단계 완료</label></section>
+<section class="page" id="done" data-title="완료"><h2 tabindex="-1">완료</h2><p id="donesum"></p><ul id="todo"></ul><p>남은 클러스터가 있으면 <code>./teardown.sh</code>로 정리합니다. 막힌 단계는 목차의 문제 해결을 봅니다.</p></section>
+<section class="page" id="trouble" data-title="문제 해결"><h2 tabindex="-1">문제 해결</h2><table>
+<tr><th>증상</th><th>원인</th><th>확인·해결</th></tr>
+<tr><td>setup: inotify 한도 부족</td><td>Docker VM/호스트 <code>fs.inotify.max_user_instances</code> &lt; 512, kubelet "too many open files"</td><td>macOS: <code>docker run --rm --privileged --pid=host alpine:3.20 sysctl -w fs.inotify.max_user_instances=512</code> (Docker 재시작 시 원복)<br>Linux: <code>sudo sysctl -w fs.inotify.max_user_instances=512</code></td></tr>
+<tr><td>kind 생성 중 control-plane 실패</td><td>메모리 부족, 다른 kind 클러스터 실행 중</td><td><code>kind get clusters</code>, Docker 메모리 4GiB 이상, 필요 없는 클러스터는 소유자가 직접 정리</td></tr>
+<tr><td>정책 apply 시 <code>failed calling webhook "mutate-policy.kyverno.svc"</code></td><td>Kyverno webhook 준비 전</td><td><code>./setup.sh</code> 재실행(멱등, webhook 대기 포함)</td></tr>
+<tr><td>kubectl이 다른 클러스터를 가리킴</td><td>새 터미널에서 env.sh 미실행</td><td><code>source ./env.sh</code>, <code>kubectl config current-context</code> = <code>kind-kca23</code></td></tr>
+<tr><td>기대 출력과 다름(created/unchanged)</td><td>이전 실습 잔여 리소스</td><td><code>./reset.sh</code> 후 해당 파트 1단계부터</td></tr>
+<tr><td>setup: 같은 이름 클러스터가 실습 소유 아님</td><td>이름 충돌</td><td>기존 클러스터는 건드리지 않음, 소유자 확인 후 정리</td></tr>
+<tr><td>ClusterPolicy apply가 거부되거나, 이미 있던 정책이 latest Deployment를 막지 않음</td><td>Kyverno v1.20 이상 설치(새 레거시 정책 생성 거부, 기존 정책 미실행)</td><td><code>kubectl -n kyverno get deploy kyverno-admission-controller -o jsonpath='{.spec.template.spec.containers[0].image}'</code> = <code>...:v1.19.2</code> 확인, 아니면 <code>./teardown.sh</code> 후 <code>./setup.sh</code></td></tr>
+<tr><td>Pod 이름·시간이 출력과 다름</td><td>실행마다 생성</td><td>정상</td></tr>
+</table><p class="note">출력의 Pod 이름 해시·시각은 실행마다 다릅니다. 긴 줄은 ...로 줄였고, ClusterPolicy deprecated 경고 줄(v1.19.2에서 매번 출력, 정상)은 생략했습니다. 키보드 ←/→로 이전·다음.</p></section>
+</main>
+<div class="pager">
+  <button type="button" id="prev">이전</button>
+  <span id="cnt" class="note"></span><div class="track"><div class="fill" id="fill"></div></div>
+  <button type="button" id="next">다음</button>
+</div>
+<script>
+(function(){
+  try{ if(window.matchMedia('(max-width:1100px)').matches) document.querySelectorAll('details.yp').forEach(function(d){ d.open=false; }); }catch(e){}
+  var KEY="kca23-guide-v4", TOTAL=19;
+  var order=['overview']; for(var i=1;i<=TOTAL;i++) order.push('step-'+i); order.push('done');
+  var known=order.concat(['trouble']);
+  var st={cur:'overview',done:{}};
+  try{ var v=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(v&&typeof v==='object'&&!Array.isArray(v)){ if(typeof v.cur==='string'&&known.indexOf(v.cur)>=0) st.cur=v.cur; if(v.done&&typeof v.done==='object'&&!Array.isArray(v.done)) st.done=v.done; }
+  }catch(e){}
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} }
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var boxes=$$('main input[data-k]'), links=$$('nav a[data-page]');
+  function render(){
+    var d=0;
+    boxes.forEach(function(b){ var on=st.done[b.dataset.k]===true; b.checked=on; b.closest('.page').classList.toggle('isdone',on); if(on)d++; });
+    links.forEach(function(a){ var c=a.dataset.page===st.cur; a.classList.toggle('cur',c); if(c) a.setAttribute('aria-current','step'); else a.removeAttribute('aria-current');
+      if(a.dataset.k){ var ok=st.done[a.dataset.k]===true; a.classList.toggle('ok',ok); a.setAttribute('aria-label',a.textContent.trim()+(ok?' (완료)':'')); } });
+    $$('.page').forEach(function(p){ p.classList.toggle('on',p.id===st.cur); });
+    var i=order.indexOf(st.cur);
+    $('#pos').textContent = st.cur.indexOf('step-')===0 ? (i+' / '+TOTAL) : ($('#'+st.cur).dataset.title);
+    $('#cnt').textContent = '완료 '+d+' / '+TOTAL;
+    $('#fill').style.width=(100*d/TOTAL)+'%';
+    $('#prev').disabled = (i<=0 && st.cur!=='trouble');
+    $('#next').textContent = (st.cur==='step-'+TOTAL) ? '완료' : '다음';
+    $('#next').disabled = (st.cur==='done');
+    if(st.cur==='done'){
+      $('#donesum').textContent='완료 체크 '+d+' / '+TOTAL;
+      var ul=$('#todo'); ul.innerHTML='';
+      boxes.forEach(function(b){ if(!b.checked){ var p=b.closest('.page'), li=document.createElement('li'), a=document.createElement('a');
+        a.href='#'+p.id; a.textContent=p.querySelector('h2').textContent.trim(); li.appendChild(a); ul.appendChild(li); } });
+    }
+  }
+  var mq=window.matchMedia('(max-width:900px)');
+  function navState(open){ document.body.classList.toggle('navopen',open); $('#navbtn').setAttribute('aria-expanded',open?'true':'false');
+    var nv=$('#nav'); if(mq.matches&&!open) nv.setAttribute('inert',''); else nv.removeAttribute('inert'); }
+  mq.addEventListener&&mq.addEventListener('change',function(){ navState(false); });
+  function go(id,push){
+    if(known.indexOf(id)<0){ id='overview'; push=true; }
+    st.cur=id; save(); render();
+    if(push!==false && location.hash!=='#'+id) location.hash=id; else if(location.hash!=='#'+id) history.replaceState(null,'','#'+id);
+    window.scrollTo(0,0);
+    var h=$('#'+id+' h2'); if(h) h.focus({preventScroll:true});
+    navState(false);
+  }
+  function step(dl){ var i=order.indexOf(st.cur); if(st.cur==='trouble') i=order.length; var j=Math.max(0,Math.min(order.length-1,i+dl)); go(order[j]); }
+  $('#prev').addEventListener('click',function(){ step(-1); });
+  $('#next').addEventListener('click',function(){ step(1); });
+  window.addEventListener('hashchange',function(){ var h=location.hash.slice(1); if(h&&h!==st.cur) go(h,false); });
+  document.addEventListener('keydown',function(ev){
+    if(ev.key==='Escape'&&document.body.classList.contains('navopen')){ navState(false); $('#navbtn').focus(); return; }
+    if(ev.altKey||ev.ctrlKey||ev.metaKey||ev.shiftKey) return;
+    var t=ev.target&&ev.target.tagName; if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT') return;
+    if(ev.key==='ArrowRight'){ step(1); ev.preventDefault(); } else if(ev.key==='ArrowLeft'){ step(-1); ev.preventDefault(); }
+  });
+  boxes.forEach(function(b){ b.addEventListener('change',function(){ st.done[b.dataset.k]=b.checked; save(); render(); }); });
+  $('#clr').addEventListener('click',function(){ st={cur:'overview',done:{}}; save(); go('overview'); });
+  $('#navbtn').addEventListener('click',function(){ var o=!document.body.classList.contains('navopen'); navState(o); if(o){ var c=$('nav a.cur')||$('nav a'); c.focus(); } });
+  function copy(t,btn){
+    function ok(){ btn.textContent='복사됨'; btn.classList.add('ok'); setTimeout(function(){ btn.textContent='복사'; btn.classList.remove('ok'); },1200); }
+    function fb(){ var a=document.createElement('textarea'); a.value=t; a.style.position='fixed'; a.style.opacity='0'; document.body.appendChild(a); a.select(); var done=false; try{ done=document.execCommand('copy'); }catch(e){ done=false; } document.body.removeChild(a);
+      if(done) ok(); else { btn.textContent='직접 선택해 복사'; var r=document.createRange(); r.selectNodeContents(btn.parentNode.querySelector('code')); var sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); } }
+    if(navigator.clipboard&&window.isSecureContext){ navigator.clipboard.writeText(t).then(ok,fb); } else fb();
+  }
+  $$('.cp').forEach(function(b){ b.addEventListener('click',function(){ copy(b.parentNode.querySelector('code').textContent,b); }); });
+  var h=location.hash.slice(1);
+  go(known.indexOf(h)>=0 ? h : st.cur, false);
+  navState(false);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-no-team
+  namespace: kca01
+  labels:
+    lecture.kca/lab: kca01
+spec:
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10

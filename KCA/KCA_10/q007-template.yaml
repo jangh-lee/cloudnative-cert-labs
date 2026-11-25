@@ -1,0 +1,24 @@
+# 과제 KCA-D4-007 답안: <...>를 채운 뒤 kubectl apply -f q007-template.yaml
+apiVersion: kyverno.io/v1
+kind: <정책 종류>
+metadata:
+  name: green-team
+  namespace: <Namespace>
+  labels:
+    lecture.kca/lab: kca10
+spec:
+  background: false
+  rules:
+    - name: team-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        failureAction: <동작>
+        message: "kca10-green Pod에는 team 라벨이 필요하다."
+        pattern:
+          metadata:
+            labels:
+              team: "?*"

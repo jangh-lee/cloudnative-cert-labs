@@ -1,0 +1,17 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kca02-require-team
+  labels:
+    lecture.kca/lab: kca02
+spec:
+  background: false
+  rules:
+    - name: require-team
+      validate:
+        failureAction: Enforce
+        message: "team 라벨 필요"
+        pattern:
+          metadata:
+            labels:
+              team: "?*"

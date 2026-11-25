@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCA 02 실습 · Policy · Rule · YAML</title>
+<style>
+:root{--bg:#f7f8fa;--card:#fff;--fg:#1b2230;--sub:#5d6b82;--line:#dfe3ea;--accent:#0f8a7e;--cur:#e3f3f1;--code:#0f1522;--codefg:#e6edf6;--ok:#1d7f4f;--outbg:#eef1f6;--outfg:#3b4658;--font:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--side:300px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1424;--card:#131c2f;--fg:#eef2f8;--sub:#9aa7bd;--line:#2c3a52;--accent:#5fd3c3;--cur:#1a2e3a;--code:#060a14;--codefg:#e6edf6;--ok:#5fd3a0;--outbg:#18233a;--outfg:#b3c0d6}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 var(--font)}
+.top{position:fixed;top:0;left:0;right:0;height:56px;z-index:20;display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--card);border-bottom:1px solid var(--line)}
+.top h1{font-size:17px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sp{flex:1}
+.top .pos{font-size:14px;color:var(--sub);white-space:nowrap}
+button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#navbtn{display:none}
+nav{position:fixed;top:56px;bottom:0;left:0;width:var(--side);overflow-y:auto;background:var(--card);border-right:1px solid var(--line);padding:10px 0 40px;z-index:15}
+nav ul,nav ol{list-style:none;margin:0;padding:0}
+nav .sec>span{display:block;font-size:12px;color:var(--sub);padding:12px 16px 4px;font-weight:600}
+nav a{display:flex;gap:6px;align-items:baseline;padding:5px 16px;color:var(--fg);text-decoration:none;font-size:14px;line-height:1.4;border-left:3px solid transparent}
+nav a:hover{background:var(--cur)}
+nav a.cur{background:var(--cur);border-left-color:var(--accent);font-weight:600}
+nav .nn{color:var(--accent);min-width:2.2em}
+nav .mk{flex:none;width:12px;height:12px;border:1.5px solid var(--line);border-radius:3px;position:relative;top:1px}
+nav a.ok .mk{background:var(--ok);border-color:var(--ok)}
+nav a.ok .mk:after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+nav .extra a{color:var(--sub)}
+main{margin-left:var(--side);padding:76px 32px 110px;max-width:calc(var(--side) + 980px)}
+.page{display:none;max-width:920px}
+.page.on{display:block}
+.page h2{font-size:24px;margin:4px 0 8px;outline:none;scroll-margin-top:72px}
+.step header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.crumb{margin:0;font-size:13px;color:var(--sub)}
+.sl{font-size:13px;color:var(--sub);white-space:nowrap}
+.no{color:var(--accent);margin-right:4px}
+.why{margin:6px 0 12px;color:var(--sub)}
+.eff{margin:6px 0 10px;font-size:17px;font-weight:600} .ba{margin:4px 0 12px} .ba td{width:50%} .ba code{font-size:.88em} .stuck{font-size:14px;color:var(--sub);margin:8px 0}
+.bd{display:inline-block;font-size:12px;font-weight:700;border-radius:4px;padding:2px 8px;vertical-align:3px;margin-left:6px;color:#fff} .bd-before{background:#6b7280} .bd-after{background:#15803d} .bdt{font-size:13px;color:var(--sub);font-weight:400;margin-left:6px;vertical-align:2px}
+.grp{margin:0 0 22px}
+.page{max-width:1240px} main{max-width:calc(var(--side) + 1300px)}
+.grp.has-y{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+.yp{margin:0 0 8px;border:1px solid var(--line);border-radius:8px;background:var(--card)} .yp summary{padding:6px 10px;font:600 12.5px var(--mono);color:var(--sub)}
+.ycode{margin:0} .ycode pre{border-radius:0 0 8px 8px;font-size:12.5px;line-height:1.55;padding-right:60px}
+.yk{color:#7cc7ff} .ys{color:#f3d28b} .yc{color:#8a96aa}
+.hl{display:inline-block;min-width:100%;font-weight:700;border-left:5px solid;margin-left:-14px;padding-left:9px;color:#111} .hl .yk,.hl .ys{color:#111}
+.hl::after{content:attr(data-n);display:inline-block;margin-left:10px;font:700 11px var(--font);padding:1px 6px;border-radius:3px;color:#fff;background:#111}
+.hl-key{background:#fcd34d;border-color:#b45309} .hl-bad{background:#fca5a5;border-color:#b91c1c} .hl-good{background:#86efac;border-color:#15803d}
+.hl-bad::after{background:#b91c1c} .hl-good::after{background:#15803d} .hl-key::after{background:#92400e}
+@media (max-width:1100px){.grp.has-y{display:block} .yp{margin-top:8px}}
+@media print{.yp{break-inside:avoid} .hl{-webkit-print-color-adjust:exact;print-color-adjust:exact}} .cn{font-size:13px;font-weight:600;color:var(--accent);margin:0 0 4px}
+.ob{margin:6px 0 2px 22px;font-size:11.5px;color:var(--sub);font-weight:600}
+.grp .out{margin:0 0 0 22px;background:var(--outbg);color:var(--outfg);border-left:3px solid var(--line);border-radius:0 6px 6px 0;font-size:12.5px;opacity:1;padding:10px 14px}
+table{border-collapse:collapse;width:100%;margin:8px 0 16px;font-size:15px} td,th{border-bottom:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top} th{color:var(--sub);font-weight:500}
+code{font-family:var(--mono);font-size:.92em}
+.cmd{position:relative;margin:8px 0}
+.cmd pre,.out{margin:0;background:var(--code);color:var(--codefg);font:14px/1.5 var(--mono);padding:12px 70px 12px 14px;border-radius:8px;overflow-x:auto;white-space:pre}
+.out{padding-right:14px;font-size:13px;opacity:.92;white-space:pre-wrap;word-break:break-all}
+.cp{position:absolute;top:8px;right:8px;font:12px var(--font);background:#2c3a52;color:#eef2f8;border:0;border-radius:5px;padding:4px 9px}
+.cp.ok{background:var(--ok)}
+details{margin:10px 0} summary{cursor:pointer;color:var(--sub);font-size:14px}
+.chk{display:inline-flex;gap:8px;align-items:center;margin:14px 0 0;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer;font-size:15px}
+.page.step.isdone .chk{border-color:var(--ok);color:var(--ok)}
+.pager{position:fixed;left:var(--side);right:0;bottom:0;z-index:10;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 32px;background:var(--card);border-top:1px solid var(--line)}
+.pager .track{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden;max-width:520px}
+.pager .fill{height:100%;width:0;background:var(--ok)}
+#next{background:var(--accent);border-color:var(--accent);color:#fff}
+.note{font-size:14px;color:var(--sub)}
+#todo a{color:var(--accent)}
+@media (max-width:900px){
+  #navbtn{display:inline-block}
+  nav{transform:translateX(-100%);transition:transform .15s;width:min(86vw,var(--side));box-shadow:0 0 0 100vmax rgba(0,0,0,0);}
+  body.navopen nav{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.35)}
+  main{margin-left:0;padding:72px 16px 110px}
+  .pager{left:0;padding:10px 16px}
+  .top h1{font-size:15px}
+  #clr{padding:6px 8px;font-size:12px}
+}
+@media print{.top,nav,.pager{display:none} main{margin:0;padding:0} .page{display:block!important;page-break-after:always}}
+</style>
+</head>
+<body>
+<div class="top">
+  <button type="button" id="navbtn" aria-controls="nav" aria-expanded="false">목차</button>
+  <h1>KCA 02 실습 · Policy · Rule · YAML</h1><span class="sp"></span><span class="pos" id="pos"></span>
+  <button type="button" id="clr" title="체크와 현재 위치 초기화">진행 초기화</button>
+</div>
+<nav id="nav" aria-label="실습 단계">
+  <ul>
+    <li class="extra"><a href="#overview" data-page="overview"><span class="mk" aria-hidden="true" style="visibility:hidden"></span>개요</a></li>
+    <li class="sec"><span>준비</span><ol><li><a href="#step-1" data-page="step-1" data-k="prep-A1"><span class="mk" aria-hidden="true"></span><span class="nn">A1</span> 자료 받기</a></li><li><a href="#step-2" data-page="step-2" data-k="prep-A1b"><span class="mk" aria-hidden="true"></span><span class="nn">A1b</span> 자료 받기 대안: git clone</a></li><li><a href="#step-3" data-page="step-3" data-k="prep-A2"><span class="mk" aria-hidden="true"></span><span class="nn">A2</span> 도구 확인</a></li><li><a href="#step-4" data-page="step-4" data-k="prep-A3"><span class="mk" aria-hidden="true"></span><span class="nn">A3</span> 환경 만들기</a></li><li><a href="#step-5" data-page="step-5" data-k="prep-A4"><span class="mk" aria-hidden="true"></span><span class="nn">A4</span> 이 터미널을 실습 클러스터에 연결</a></li></ol></li><li class="sec"><span>실습 · v1.19 ClusterPolicy 구조</span><ol><li><a href="#step-6" data-page="step-6" data-k="legacy-0"><span class="mk" aria-hidden="true"></span><span class="nn">0</span> 정책 없이 01·02 Pod 제출</a></li><li><a href="#step-7" data-page="step-7" data-k="legacy-1"><span class="mk" aria-hidden="true"></span><span class="nn">1</span> validate 규칙 정책 생성</a></li><li><a href="#step-8" data-page="step-8" data-k="legacy-2"><span class="mk" aria-hidden="true"></span><span class="nn">2</span> 01·02 Pod 다시 제출</a></li><li><a href="#step-9" data-page="step-9" data-k="legacy-3"><span class="mk" aria-hidden="true"></span><span class="nn">3</span> rule 필드 목록</a></li><li><a href="#step-10" data-page="step-10" data-k="legacy-4"><span class="mk" aria-hidden="true"></span><span class="nn">4</span> rule 유형 0개 · 2개</a></li><li><a href="#step-11" data-page="step-11" data-k="legacy-5"><span class="mk" aria-hidden="true"></span><span class="nn">5</span> failureAction 위치 오류</a></li><li><a href="#step-12" data-page="step-12" data-k="legacy-6"><span class="mk" aria-hidden="true"></span><span class="nn">6</span> validate 아래로 옮긴 정책</a></li><li><a href="#step-13" data-page="step-13" data-k="legacy-7"><span class="mk" aria-hidden="true"></span><span class="nn">7</span> match 없는 정책</a></li><li><a href="#step-14" data-page="step-14" data-k="legacy-8"><span class="mk" aria-hidden="true"></span><span class="nn">8</span> 규칙 이름 중복</a></li><li><a href="#step-15" data-page="step-15" data-k="legacy-9"><span class="mk" aria-hidden="true"></span><span class="nn">9</span> 규칙 이름 나누기</a></li><li><a href="#step-16" data-page="step-16" data-k="A-과제"><span class="mk" aria-hidden="true"></span><span class="nn">과제</span> 실습 과제 KCA-D1-008</a></li><li><a href="#step-17" data-page="step-17" data-k="A-판정"><span class="mk" aria-hidden="true"></span><span class="nn">판정</span> 자동 판정(선택)</a></li></ol></li><li class="sec"><span>끝내기</span><ol><li><a href="#step-18" data-page="step-18" data-k="A-정리"><span class="mk" aria-hidden="true"></span><span class="nn">정리</span> 정리</a></li></ol></li>
+    <li class="sec"><span>마무리</span><ol class="extra">
+      <li><a href="#done" data-page="done"><span class="mk" aria-hidden="true" style="visibility:hidden"></span>완료</a></li>
+      <li><a href="#trouble" data-page="trouble"><span class="mk" aria-hidden="true" style="visibility:hidden"></span>문제 해결</a></li>
+    </ol></li>
+  </ul>
+</nav>
+<main>
+<p class="note">Kyverno 정책 실습 – KCA 시험 대비. 본 자료는 Linux Foundation·CNCF와 무관한 독립 교육자료입니다.</p>
+<section class="page" id="overview" data-title="개요"><h2 tabindex="-1">개요</h2><table>
+<tr><th>항목</th><th>값</th></tr>
+<tr><td>배포 변수</td><td><code>LAB_REPO=jangh-lee/cloudnative-cert-labs</code> · <code>LAB_VER=v2026.11.25</code></td></tr>
+<tr><td>목표</td><td>같은 Pod가 validate 규칙 전후 생성 → 거부로 바뀌는 것, rule 필드 위치·필수 필드·유형 수·이름 중복 오류가 어느 단계에서 거부되는지 출력으로 확인</td></tr>
+<tr><td>범위</td><td>v1.19 레거시 ClusterPolicy, 단계 0~9 + 과제, 클러스터 <code>kca02</code></td></tr>
+<tr><td>버전</td><td>kind v0.33.0 · node v1.35.8 · Kyverno v1.19.2(chart 3.9.2) 고정</td></tr>
+<tr><td>필요 도구</td><td>Docker(4GiB 이상), kind, kubectl 1.34+, helm 3.14+ · macOS 또는 Linux</td></tr>
+<tr><td>시간</td><td>준비 약 2분, 실습 약 10분</td></tr>
+<tr><td>네트워크</td><td>가이드는 오프라인 열람, setup은 node 이미지·chart 다운로드 필요</td></tr>
+<tr><td>격리</td><td>전용 kubeconfig <code>~/.kca-lab/</code>, 기존 클러스터·<code>~/.kube/config</code>·현재 context 변경 없음</td></tr>
+<tr><td>검증</td><td>2026-11-25 아래 명령·출력 그대로 실행 확인</td></tr>
+</table></section>
+<section class="page step" id="step-1" data-k="prep-A1" data-title="자료 받기"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A1</span> 자료 받기 </h2></header><p class="eff">공개 저장소 릴리스의 KCA_02_lab.zip을 받아 풀면 실습 폴더 KCA_02가 생긴다.</p><div class="grp"><div class="cn">저장소·버전 지정</div><div class="cmd"><pre><code>export LAB_REPO=&#x27;jangh-lee/cloudnative-cert-labs&#x27; LAB_VER=&#x27;v2026.11.25&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">(출력 없음)</pre></div><div class="grp"><div class="cn">릴리스 zip 받기·해시 확인</div><div class="cmd"><pre><code>curl -fsSLO https://github.com/${LAB_REPO}/releases/download/${LAB_VER}/KCA_02_lab.zip
+shasum -a 256 KCA_02_lab.zip</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">&lt;64자리 sha256&gt;  KCA_02_lab.zip   # 릴리스 페이지 값과 같아야 함</pre></div><div class="grp"><div class="cn">압축 풀고 폴더로 이동</div><div class="cmd"><pre><code>unzip KCA_02_lab.zip
+cd KCA_02 &amp;&amp; ls</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">Archive:  KCA_02_lab.zip
+   creating: KCA_02
+  inflating: KCA_02/00-namespace.yaml
+  ...
+00-namespace.yaml
+01-pod-no-app.yaml
+02-pod-app-only.yaml
+03-cpol-require-app.yaml
+04-cpol-no-type.yaml
+05-cpol-two-types.yaml
+06-cpol-team-bad-position.yaml
+07-cpol-team-fixed.yaml
+08-cpol-no-match.yaml
+09-cpol-dup-name.yaml
+10-cpol-unique-name.yaml
+11-pod-owner-missing.yaml
+12-pod-owner.yaml
+README.md
+env.sh
+guide.html
+lib.sh
+manifest.yaml
+reset.sh
+setup.sh
+teardown.sh
+verify.sh</pre></div><p class="stuck">막힐 때: curl 404면 LAB_REPO·LAB_VER 확인, 안 되면 아래 git clone</p><label class="chk"><input type="checkbox" data-k="prep-A1"> 이 단계 완료</label></section>
+<section class="page step" id="step-2" data-k="prep-A1b" data-title="자료 받기 대안: git clone"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A1b</span> 자료 받기 대안: git clone </h2></header><p class="eff">릴리스 zip 대신 저장소를 받아도 같은 KCA_02 폴더를 쓴다(선택).</p><div class="grp"><div class="cn">저장소 받기·실습 폴더로 이동</div><div class="cmd"><pre><code>git clone --depth 1 https://github.com/${LAB_REPO}.git
+cd &quot;$(basename &quot;$LAB_REPO&quot;)/KCA/KCA_02&quot; &amp;&amp; ls</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">Cloning into &#x27;cloudnative-cert-labs&#x27;...
+00-namespace.yaml
+01-pod-no-app.yaml
+02-pod-app-only.yaml
+03-cpol-require-app.yaml
+04-cpol-no-type.yaml
+05-cpol-two-types.yaml
+06-cpol-team-bad-position.yaml
+07-cpol-team-fixed.yaml
+08-cpol-no-match.yaml
+09-cpol-dup-name.yaml
+10-cpol-unique-name.yaml
+11-pod-owner-missing.yaml
+12-pod-owner.yaml
+README.md
+env.sh
+guide.html
+lib.sh
+manifest.yaml
+reset.sh
+setup.sh
+teardown.sh
+verify.sh</pre></div><label class="chk"><input type="checkbox" data-k="prep-A1b"> 이 단계 완료</label></section>
+<section class="page step" id="step-3" data-k="prep-A2" data-title="도구 확인"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A2</span> 도구 확인 </h2></header><p class="eff">Docker·kind·kubectl·helm이 설치되어 있어야 setup이 동작한다.</p><div class="grp"><div class="cn">도구 버전 확인</div><div class="cmd"><pre><code>docker version --format &#x27;{{.Server.Version}}&#x27;
+kind version
+kubectl version --client
+helm version --short</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">29.5.2
+kind v0.33.0 go1.27.1 darwin/arm64
+Client Version: v1.37.2
+Kustomize Version: v5.8.1
+v4.3.2+g8346aaa</pre></div><p class="stuck">막힐 때: 기준: Docker 4GiB+, kind v0.33.0, kubectl 1.34+, helm 3.14+</p><label class="chk"><input type="checkbox" data-k="prep-A2"> 이 단계 완료</label></section>
+<section class="page step" id="step-4" data-k="prep-A3" data-title="환경 만들기"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A3</span> 환경 만들기 </h2></header><p class="eff">setup.sh가 kind 클러스터 kca02와 Kyverno v1.19.2(chart 3.9.2)를 설치한다(v1.20 이상은 이 실습 정책 미실행).</p><div class="grp"><div class="cn">클러스터·Kyverno 설치</div><div class="cmd"><pre><code>./setup.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">==&gt; 도구 점검 (Darwin)
+    kind v0.33.0 · kubectl v1.37.2 · helm v4.3.2 · docker 29.5.2
+==&gt; inotify 점검
+    max_user_instances=512
+==&gt; kind 클러스터 kca02
+==&gt; Kyverno v1.19.2 설치 (chart 3.9.2)
+    reg.kyverno.io/kyverno/kyverno:v1.19.2
+==&gt; 정책 webhook 대기
+==&gt; 실습 Namespace kca02
+준비 완료: kca02 (Kyverno v1.19.2)
+다음: source ./env.sh
+주의: Kyverno v1.20 이상은 이 실습의 ClusterPolicy를 실행하지 않음. setup.sh가 고정한 v1.19.2만 사용</pre></div><p class="stuck">막힐 때: ERROR 줄 안내대로 고친 뒤 재실행</p><label class="chk"><input type="checkbox" data-k="prep-A3"> 이 단계 완료</label></section>
+<section class="page step" id="step-5" data-k="prep-A4" data-title="이 터미널을 실습 클러스터에 연결"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A4</span> 이 터미널을 실습 클러스터에 연결 </h2></header><p class="eff">현재 터미널의 kubectl을 실습 클러스터에 연결한다(새 터미널마다 다시).</p><div class="grp"><div class="cn">현재 터미널 연결</div><div class="cmd"><pre><code>source ./env.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">KUBECONFIG=~/.kca-lab/kca02.kubeconfig  context=kind-kca02  dir=.../KCA_02</pre></div><p class="stuck">막힐 때: kubeconfig 없음·context 불일치면 ./setup.sh 재실행</p><label class="chk"><input type="checkbox" data-k="prep-A4"> 이 단계 완료</label></section>
+<section class="page step" id="step-6" data-k="legacy-0" data-title="정책 없이 01·02 Pod 제출"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">0</span> 정책 없이 01·02 Pod 제출 <span class="bd bd-before">적용 전</span><span class="bdt">정책 없음</span></h2><span class="sl">슬라이드 S04</span></header><p class="eff">정책이 없으면 app 라벨이 없는 Pod도 생성된다.</p><div class="grp has-y"><div class="gl"><div class="cn">정책 없이 Pod 2개 생성·조회</div><div class="cmd"><pre><code>kubectl apply -f 01-pod-no-app.yaml -f 02-pod-app-only.yaml
+kubectl -n kca02 get pod no-app app-only</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">pod/no-app created
+pod/app-only created
+NAME       READY   STATUS              RESTARTS   AGE
+no-app     0/1     ContainerCreating   0          0s
+app-only   0/1     ContainerCreating   0          0s</pre></div><div class="gy"><details class="yp" open data-file="01-pod-no-app.yaml" data-sha="d50248961ab74121fed18375c79058e006b9167509086d4702590441ce017bd9"><summary>YAML 보기 · 01-pod-no-app.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> no-app</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca02</span>
+  <span class="yk">labels</span>:
+<span class="hl hl-bad" data-n="← 문제: app 라벨 없음">    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> nginx</span>
+      <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details><details class="yp" open data-file="02-pod-app-only.yaml" data-sha="dedfbb48e037dd1b58161a15a0b9aa71f36bb9c412533b85ebd04c8c74d48ffe"><summary>YAML 보기 · 02-pod-app-only.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> app-only</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca02</span>
+  <span class="yk">labels</span>:
+<span class="hl hl-bad" data-n="← team 라벨 없음">    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span></span>
+<span class="hl hl-good" data-n="← app 라벨 있음">    <span class="yk">app</span>:<span class="ys"> web</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> nginx</span>
+      <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp has-y"><div class="gl"><div class="cn">두 Pod 삭제</div><div class="cmd"><pre><code>kubectl delete -f 01-pod-no-app.yaml -f 02-pod-app-only.yaml --wait=true</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">pod &quot;no-app&quot; deleted from kca02 namespace
+pod &quot;app-only&quot; deleted from kca02 namespace</pre></div><div class="gy"><details class="yp" open data-file="01-pod-no-app.yaml" data-sha="d50248961ab74121fed18375c79058e006b9167509086d4702590441ce017bd9"><summary>YAML 보기 · 01-pod-no-app.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> no-app</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca02</span>
+  <span class="yk">labels</span>:
+<span class="hl hl-bad" data-n="← 문제: app 라벨 없음">    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> nginx</span>
+      <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details><details class="yp" open data-file="02-pod-app-only.yaml" data-sha="dedfbb48e037dd1b58161a15a0b9aa71f36bb9c412533b85ebd04c8c74d48ffe"><summary>YAML 보기 · 02-pod-app-only.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> app-only</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca02</span>
+  <span class="yk">labels</span>:
+<span class="hl hl-bad" data-n="← team 라벨 없음">    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span></span>
+<span class="hl hl-good" data-n="← app 라벨 있음">    <span class="yk">app</span>:<span class="ys"> web</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> nginx</span>
+      <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: unchanged·거부가 나오면 ./reset.sh 후 0단계부터</p><label class="chk"><input type="checkbox" data-k="legacy-0"> 이 단계 완료</label></section>
+<section class="page step" id="step-7" data-k="legacy-1" data-title="validate 규칙 정책 생성"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">1</span> validate 규칙 정책 생성 <span class="bd bd-after">적용 후</span><span class="bdt">정책 적용</span></h2><span class="sl">슬라이드 S06</span></header><p class="eff">규칙 하나(require-app)를 가진 ClusterPolicy가 Ready가 된다.</p><div class="grp has-y"><div class="gl"><div class="cn">정책 생성·Ready 대기</div><div class="cmd"><pre><code>kubectl apply -f 03-cpol-require-app.yaml
+kubectl wait --for=condition=Ready clusterpolicy/kca02-require-app --timeout=60s</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">clusterpolicy.kyverno.io/kca02-require-app created
+clusterpolicy.kyverno.io/kca02-require-app condition met</pre></div><div class="gy"><details class="yp" open data-file="03-cpol-require-app.yaml" data-sha="b52ee68708a5fabf7f3af246e9dd3e3522d7190a9fe473d336ccbc31f4bbd37f"><summary>YAML 보기 · 03-cpol-require-app.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca02-require-app</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+<span class="hl hl-key" data-n="← 핵심: 규칙 이름">    - <span class="yk">name</span>:<span class="ys"> require-app</span></span>
+<span class="hl hl-key" data-n="← 핵심: 검사 대상">      <span class="yk">match</span>:</span>
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca02
+<span class="hl hl-key" data-n="← 핵심: 규칙 유형">      <span class="yk">validate</span>:</span>
+<span class="hl hl-key" data-n="← 핵심: validate 아래 위치">        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span></span>
+        <span class="yk">message</span>:<span class="ys"> &quot;app 라벨 필요&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">metadata</span>:
+            <span class="yk">labels</span>:
+<span class="hl hl-key" data-n="← app 값 1글자 이상">              <span class="yk">app</span>:<span class="ys"> &quot;?*&quot;</span></span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: condition met가 없으면 kubectl -n kyverno get pods 확인</p><label class="chk"><input type="checkbox" data-k="legacy-1"> 이 단계 완료</label></section>
+<section class="page step" id="step-8" data-k="legacy-2" data-title="01·02 Pod 다시 제출"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">2</span> 01·02 Pod 다시 제출 <span class="bd bd-after">적용 후</span><span class="bdt">정책 적용</span></h2><span class="sl">슬라이드 S04</span></header><p class="eff">validate 규칙이 있으면 app 라벨이 없는 no-app Pod의 생성 요청이 거부된다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>정책 없음 (0단계) · 생성됨<br><code>pod/no-app created</code></td><td>require-app 규칙 · 거부됨<br><code>resource Pod/kca02/no-app was blocked</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">라벨 없는 Pod 제출</div><div class="cmd"><pre><code>kubectl apply -f 01-pod-no-app.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">Error from server: error when creating &quot;01-pod-no-app.yaml&quot;: admission webhook &quot;validate.kyverno.svc-fail&quot; denied the request: 
+resource Pod/kca02/no-app was blocked due to the following policies 
+kca02-require-app:
+  require-app: &#x27;validation error: app 라벨 필요. rule require-app failed at path /metadata/labels/app/&#x27;</pre></div><div class="gy"><details class="yp" open data-file="01-pod-no-app.yaml" data-sha="d50248961ab74121fed18375c79058e006b9167509086d4702590441ce017bd9"><summary>YAML 보기 · 01-pod-no-app.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> no-app</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca02</span>
+  <span class="yk">labels</span>:
+<span class="hl hl-bad" data-n="← 문제: app 라벨 없음">    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> nginx</span>
+      <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp has-y"><div class="gl"><div class="cn">app 라벨 Pod 제출</div><div class="cmd"><pre><code>kubectl apply -f 02-pod-app-only.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">pod/app-only created</pre></div><div class="gy"><details class="yp" open data-file="02-pod-app-only.yaml" data-sha="dedfbb48e037dd1b58161a15a0b9aa71f36bb9c412533b85ebd04c8c74d48ffe"><summary>YAML 보기 · 02-pod-app-only.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> app-only</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca02</span>
+  <span class="yk">labels</span>:
+<span class="hl hl-bad" data-n="← team 라벨 없음">    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span></span>
+<span class="hl hl-good" data-n="← app 라벨 있음">    <span class="yk">app</span>:<span class="ys"> web</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> nginx</span>
+      <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: created가 나오면 1단계 Ready 확인</p><label class="chk"><input type="checkbox" data-k="legacy-2"> 이 단계 완료</label></section>
+<section class="page step" id="step-9" data-k="legacy-3" data-title="rule 필드 목록"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">3</span> rule 필드 목록 </h2><span class="sl">슬라이드 S07</span></header><p class="eff">kubectl explain으로 rule에 들어가는 필드와 필수 필드를 확인한다.</p><div class="grp"><div class="cn">rule 필드 조회</div><div class="cmd"><pre><code>kubectl explain clusterpolicy.spec.rules | grep -E &#x27;^  (name|match|exclude|validate|mutate|generate|verifyImages)\b&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">  exclude	&lt;Object&gt;
+  generate	&lt;Object&gt;
+  match	&lt;Object&gt; -required-
+  mutate	&lt;Object&gt;
+  name	&lt;string&gt; -required-
+  validate	&lt;Object&gt;
+  verifyImages	&lt;[]Object&gt;</pre></div><p class="stuck">막힐 때: 출력이 비면 source ./env.sh 확인</p><label class="chk"><input type="checkbox" data-k="legacy-3"> 이 단계 완료</label></section>
+<section class="page step" id="step-10" data-k="legacy-4" data-title="rule 유형 0개 · 2개"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">4</span> rule 유형 0개 · 2개 <span class="bd bd-before">적용 전</span><span class="bdt">유형 0개·2개</span></h2><span class="sl">슬라이드 S09</span></header><p class="eff">규칙에 유형이 없거나 둘이면 Kyverno가 정책 생성 요청을 거부한다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>유형 2개 · 거부됨<br><code>Multiple operations defined in the rule &#x27;require-app&#x27;</code></td><td>유형 1개 (1단계) · 생성됨<br><code>clusterpolicy.kyverno.io/kca02-require-app created</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">유형 없는 정책 제출</div><div class="cmd"><pre><code>kubectl apply -f 04-cpol-no-type.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">Error from server: error when creating &quot;04-cpol-no-type.yaml&quot;: admission webhook &quot;validate-policy.kyverno.svc&quot; denied the request: spec.rules[0]: Invalid value: {...}: No operation defined in the rule &#x27;require-app&#x27;.(supported operations: mutate,validate,generate,verifyImages)</pre></div><div class="gy"><details class="yp" open data-file="04-cpol-no-type.yaml" data-sha="8391b846685d5a0f4379b6eb0fdc39ff0958a7e7d32ca138a5af475aa93713d4"><summary>YAML 보기 · 04-cpol-no-type.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca02-no-type</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+<span class="hl hl-bad" data-n="← 문제: 유형 없음(match만)">    - <span class="yk">name</span>:<span class="ys"> require-app</span></span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca02
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp has-y"><div class="gl"><div class="cn">validate·mutate 함께 쓴 정책 제출</div><div class="cmd"><pre><code>kubectl apply -f 05-cpol-two-types.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">Error from server: error when creating &quot;05-cpol-two-types.yaml&quot;: admission webhook &quot;validate-policy.kyverno.svc&quot; denied the request: spec.rules[0]: Invalid value: {...}: Multiple operations defined in the rule &#x27;require-app&#x27;, only one operation (mutate,validate,generate,verifyImages) is allowed per rule</pre></div><div class="gy"><details class="yp" open data-file="05-cpol-two-types.yaml" data-sha="30c871edb981ba6bcc9e4c948c8f0dfa0c2f7a2406f6f6ab0e48446caf23eec9"><summary>YAML 보기 · 05-cpol-two-types.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca02-two-types</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+    - <span class="yk">name</span>:<span class="ys"> require-app</span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca02
+<span class="hl hl-bad" data-n="← 문제: 유형 1">      <span class="yk">validate</span>:</span>
+        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span>
+        <span class="yk">message</span>:<span class="ys"> &quot;app 라벨 필요&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">metadata</span>:
+            <span class="yk">labels</span>:
+              <span class="yk">app</span>:<span class="ys"> &quot;?*&quot;</span>
+<span class="hl hl-bad" data-n="← 문제: 유형 2">      <span class="yk">mutate</span>:</span>
+        <span class="yk">patchStrategicMerge</span>:
+          <span class="yk">metadata</span>:
+            <span class="yk">labels</span>:
+              <span class="yk">team</span>:<span class="ys"> platform</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: created가 나오면 kubectl -n kyverno get pods 확인</p><label class="chk"><input type="checkbox" data-k="legacy-4"> 이 단계 완료</label></section>
+<section class="page step" id="step-11" data-k="legacy-5" data-title="failureAction 위치 오류"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">5</span> failureAction 위치 오류 <span class="bd bd-before">적용 전</span><span class="bdt">잘못된 위치</span></h2><span class="sl">슬라이드 S11</span></header><p class="eff">failureAction을 rule 바로 아래에 쓰면 API 서버가 정책 생성 요청을 거부한다.</p><div class="grp has-y"><div class="gl"><div class="cn">잘못된 위치의 정책 제출</div><div class="cmd"><pre><code>kubectl apply -f 06-cpol-team-bad-position.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">Error from server (BadRequest): error when creating &quot;06-cpol-team-bad-position.yaml&quot;: ClusterPolicy in version &quot;v1&quot; cannot be handled as a ClusterPolicy: strict decoding error: unknown field &quot;spec.rules[0].failureAction&quot;</pre></div><div class="gy"><details class="yp" open data-file="06-cpol-team-bad-position.yaml" data-sha="3f0c305010caf5aca6f47762e61ac14577ec15fbf3a960f0b9be861bfad13833"><summary>YAML 보기 · 06-cpol-team-bad-position.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca02-require-team</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+    - <span class="yk">name</span>:<span class="ys"> require-team</span>
+<span class="hl hl-bad" data-n="← 문제: rule 바로 아래">      <span class="yk">failureAction</span>:<span class="ys"> Enforce</span></span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca02
+      <span class="yk">validate</span>:
+        <span class="yk">message</span>:<span class="ys"> &quot;team 라벨 필요&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">metadata</span>:
+            <span class="yk">labels</span>:
+              <span class="yk">team</span>:<span class="ys"> &quot;?*&quot;</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><label class="chk"><input type="checkbox" data-k="legacy-5"> 이 단계 완료</label></section>
+<section class="page step" id="step-12" data-k="legacy-6" data-title="validate 아래로 옮긴 정책"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">6</span> validate 아래로 옮긴 정책 <span class="bd bd-after">적용 후</span><span class="bdt">validate 아래</span></h2><span class="sl">슬라이드 S11</span></header><p class="eff">failureAction을 validate 아래로 옮기면 정책이 생성되고 team 라벨 없는 app-only Pod가 거부된다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>rule 아래 (5단계) · 거부됨<br><code>unknown field &quot;spec.rules[0].failureAction&quot;</code></td><td>validate 아래 · 생성됨<br><code>clusterpolicy.kyverno.io/kca02-require-team created</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">고친 정책 생성·Ready 대기</div><div class="cmd"><pre><code>kubectl apply -f 07-cpol-team-fixed.yaml
+kubectl wait --for=condition=Ready clusterpolicy/kca02-require-team --timeout=60s</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">clusterpolicy.kyverno.io/kca02-require-team created
+clusterpolicy.kyverno.io/kca02-require-team condition met</pre></div><div class="gy"><details class="yp" open data-file="07-cpol-team-fixed.yaml" data-sha="094740f764cf4d0bdf61397704c6e910a259e21575e810924a6f0a2a7a0e05c8"><summary>YAML 보기 · 07-cpol-team-fixed.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca02-require-team</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+    - <span class="yk">name</span>:<span class="ys"> require-team</span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca02
+      <span class="yk">validate</span>:
+<span class="hl hl-good" data-n="← 해결: validate 아래">        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span></span>
+        <span class="yk">message</span>:<span class="ys"> &quot;team 라벨 필요&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">metadata</span>:
+            <span class="yk">labels</span>:
+              <span class="yk">team</span>:<span class="ys"> &quot;?*&quot;</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp has-y"><div class="gl"><div class="cn">app-only Pod 삭제 후 다시 제출</div><div class="cmd"><pre><code>kubectl delete -f 02-pod-app-only.yaml --wait=true
+kubectl apply -f 02-pod-app-only.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">pod &quot;app-only&quot; deleted from kca02 namespace
+Error from server: error when creating &quot;02-pod-app-only.yaml&quot;: admission webhook &quot;validate.kyverno.svc-fail&quot; denied the request: 
+resource Pod/kca02/app-only was blocked due to the following policies 
+kca02-require-team:
+  require-team: &#x27;validation error: team 라벨 필요. rule require-team failed at path /metadata/labels/team/&#x27;</pre></div><div class="gy"><details class="yp" open data-file="02-pod-app-only.yaml" data-sha="dedfbb48e037dd1b58161a15a0b9aa71f36bb9c412533b85ebd04c8c74d48ffe"><summary>YAML 보기 · 02-pod-app-only.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> app-only</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca02</span>
+  <span class="yk">labels</span>:
+<span class="hl hl-bad" data-n="← team 라벨 없음">    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span></span>
+<span class="hl hl-good" data-n="← app 라벨 있음">    <span class="yk">app</span>:<span class="ys"> web</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> nginx</span>
+      <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><p class="stuck">막힐 때: unchanged면 6단계 delete 먼저</p><label class="chk"><input type="checkbox" data-k="legacy-6"> 이 단계 완료</label></section>
+<section class="page step" id="step-13" data-k="legacy-7" data-title="match 없는 정책"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">7</span> match 없는 정책 <span class="bd bd-before">적용 전</span><span class="bdt">match 없음</span></h2><span class="sl">슬라이드 S12</span></header><p class="eff">이미 있는 07 정책에 match만 뺀 08을 적용하면 Required value로 거부되고 기존 정책은 그대로다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>match 뺀 08 · 변경 거부<br><code>spec.rules[0].match: Required value</code></td><td>match 있는 07 (6단계) · 생성됨<br><code>clusterpolicy.kyverno.io/kca02-require-team created</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">07에서 match만 뺀 08 적용</div><div class="cmd"><pre><code>kubectl apply -f 08-cpol-no-match.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">The ClusterPolicy &quot;kca02-require-team&quot; is invalid: spec.rules[0].match: Required value</pre></div><div class="gy"><details class="yp" open data-file="08-cpol-no-match.yaml" data-sha="b96b0d39b440c65cac09824758c862b18fa779c5c1d67e34448691541a928cde"><summary>YAML 보기 · 08-cpol-no-match.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca02-require-team</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+<span class="hl hl-bad" data-n="← 문제: 다음 줄에 match 없음">    - <span class="yk">name</span>:<span class="ys"> require-team</span></span>
+      <span class="yk">validate</span>:
+        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span>
+        <span class="yk">message</span>:<span class="ys"> &quot;team 라벨 필요&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">metadata</span>:
+            <span class="yk">labels</span>:
+              <span class="yk">team</span>:<span class="ys"> &quot;?*&quot;</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp"><div class="cn">기존 정책의 match 확인</div><div class="cmd"><pre><code>kubectl get clusterpolicy kca02-require-team -o jsonpath=&#x27;{.spec.rules[0].match.any[0].resources.kinds[0]}{&quot;\n&quot;}&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">Pod</pre></div><label class="chk"><input type="checkbox" data-k="legacy-7"> 이 단계 완료</label></section>
+<section class="page step" id="step-14" data-k="legacy-8" data-title="규칙 이름 중복"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">8</span> 규칙 이름 중복 <span class="bd bd-before">적용 전</span><span class="bdt">이름 중복</span></h2><span class="sl">슬라이드 S13</span></header><p class="eff">한 정책에 같은 이름의 규칙이 둘이면 Kyverno가 정책 생성 요청을 거부한다.</p><div class="grp has-y"><div class="gl"><div class="cn">이름이 같은 규칙 2개 정책 제출</div><div class="cmd"><pre><code>kubectl apply -f 09-cpol-dup-name.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">Error from server: error when creating &quot;09-cpol-dup-name.yaml&quot;: admission webhook &quot;validate-policy.kyverno.svc&quot; denied the request: spec.rules[1].name: Invalid value: {...}: Duplicate rule name: &#x27;require-label&#x27;</pre></div><div class="gy"><details class="yp" open data-file="09-cpol-dup-name.yaml" data-sha="e5a22bbfebf2d4f9e655542674828df0408d86a2a474361efec2cf8f5729c72e"><summary>YAML 보기 · 09-cpol-dup-name.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca02-env-tier</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+<span class="hl hl-bad" data-n="← 문제: 같은 이름">    - <span class="yk">name</span>:<span class="ys"> require-label</span></span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca02
+      <span class="yk">validate</span>:
+        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span>
+        <span class="yk">message</span>:<span class="ys"> &quot;env 라벨 필요&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">metadata</span>:
+            <span class="yk">labels</span>:
+              <span class="yk">env</span>:<span class="ys"> &quot;?*&quot;</span>
+<span class="hl hl-bad" data-n="← 문제: 같은 이름">    - <span class="yk">name</span>:<span class="ys"> require-label</span></span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca02
+      <span class="yk">validate</span>:
+        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span>
+        <span class="yk">message</span>:<span class="ys"> &quot;tier 라벨 필요&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">metadata</span>:
+            <span class="yk">labels</span>:
+              <span class="yk">tier</span>:<span class="ys"> &quot;?*&quot;</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><label class="chk"><input type="checkbox" data-k="legacy-8"> 이 단계 완료</label></section>
+<section class="page step" id="step-15" data-k="legacy-9" data-title="규칙 이름 나누기"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">9</span> 규칙 이름 나누기 <span class="bd bd-after">적용 후</span><span class="bdt">이름 나눔</span></h2><span class="sl">슬라이드 S13</span></header><p class="eff">규칙 이름을 require-env·require-tier로 나누면 같은 내용의 정책이 생성된다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>이름 중복 (8단계) · 거부됨<br><code>Duplicate rule name: &#x27;require-label&#x27;</code></td><td>이름 나눔 · 생성됨<br><code>clusterpolicy.kyverno.io/kca02-env-tier created</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">정책 생성·규칙 이름 조회</div><div class="cmd"><pre><code>kubectl apply -f 10-cpol-unique-name.yaml
+kubectl get clusterpolicy kca02-env-tier -o jsonpath=&#x27;{.spec.rules[*].name}{&quot;\n&quot;}&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">clusterpolicy.kyverno.io/kca02-env-tier created
+require-env require-tier</pre></div><div class="gy"><details class="yp" open data-file="10-cpol-unique-name.yaml" data-sha="cd2ec3ba7368e33b45c4d21ac5c2243263d0c2decab3a2022dde7abb78c3be43"><summary>YAML 보기 · 10-cpol-unique-name.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> kyverno.io/v1</span>
+<span class="yk">kind</span>:<span class="ys"> ClusterPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> kca02-env-tier</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+<span class="yk">spec</span>:
+  <span class="yk">background</span>:<span class="ys"> false</span>
+  <span class="yk">rules</span>:
+<span class="hl hl-good" data-n="← 해결: 이름 1">    - <span class="yk">name</span>:<span class="ys"> require-env</span></span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca02
+      <span class="yk">validate</span>:
+        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span>
+        <span class="yk">message</span>:<span class="ys"> &quot;env 라벨 필요&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">metadata</span>:
+            <span class="yk">labels</span>:
+              <span class="yk">env</span>:<span class="ys"> &quot;?*&quot;</span>
+<span class="hl hl-good" data-n="← 해결: 이름 2">    - <span class="yk">name</span>:<span class="ys"> require-tier</span></span>
+      <span class="yk">match</span>:
+        <span class="yk">any</span>:
+          - <span class="yk">resources</span>:
+              <span class="yk">kinds</span>:
+                - Pod
+              <span class="yk">namespaces</span>:
+                - kca02
+      <span class="yk">validate</span>:
+        <span class="yk">failureAction</span>:<span class="ys"> Enforce</span>
+        <span class="yk">message</span>:<span class="ys"> &quot;tier 라벨 필요&quot;</span>
+        <span class="yk">pattern</span>:
+          <span class="yk">metadata</span>:
+            <span class="yk">labels</span>:
+              <span class="yk">tier</span>:<span class="ys"> &quot;?*&quot;</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><label class="chk"><input type="checkbox" data-k="legacy-9"> 이 단계 완료</label></section>
+<section class="page step" id="step-16" data-k="A-과제" data-title="실습 과제 KCA-D1-008"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">과제</span> 실습 과제 KCA-D1-008 <span class="bd bd-after">적용 후</span><span class="bdt">과제 정책</span></h2></header><p class="eff">require-owner 규칙을 제자리에 쓴 정책을 만들면 owner 라벨 없는 Pod가 서버 dry-run에서 거부된다.</p><table class="ba"><tr><th><span class="bd bd-before">적용 전</span></th><th><span class="bd bd-after">적용 후</span></th></tr><tr><td>과제 정책 전 · 통과<br><code>pod/owner-missing created (server dry run)</code></td><td>과제 정책 후 · 거부됨<br><code>resource Pod/kca02/owner-missing was blocked</code></td></tr></table><table class="req"><tr><th>이름</th><td><code>kca02-require-owner</code></td></tr><tr><th>라벨</th><td><code>lecture.kca/lab: kca02</code></td></tr><tr><th>규칙</th><td><code>require-owner, kinds Pod, namespaces kca02</code></td></tr><tr><th>검사</th><td><code>metadata.labels.owner &quot;?*&quot;</code></td></tr><tr><th>동작</th><td><code>validate.failureAction Enforce, background false</code></td></tr></table><div class="grp has-y"><div class="gl"><div class="cn">과제 정책 전: owner 없는 Pod 서버 dry-run</div><div class="cmd"><pre><code>kubectl apply --dry-run=server -f 11-pod-owner-missing.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-before">적용 전</span> 출력</div><pre class="out">pod/owner-missing created (server dry run)</pre></div><div class="gy"><details class="yp" open data-file="11-pod-owner-missing.yaml" data-sha="f26ca2c479595df4e531c3a7c7482fccbb08892f251c41e945762a153e584be9"><summary>YAML 보기 · 11-pod-owner-missing.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> owner-missing</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca02</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+    <span class="yk">app</span>:<span class="ys"> web</span>
+    <span class="yk">team</span>:<span class="ys"> platform</span>
+    <span class="yk">env</span>:<span class="ys"> dev</span>
+<span class="hl hl-bad" data-n="← owner 라벨 없음">    <span class="yk">tier</span>:<span class="ys"> front</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> nginx</span>
+      <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp"><div class="cn">내 정책 생성·Ready 대기·필드 조회</div><div class="cmd"><pre><code>kubectl apply -f my-require-owner.yaml
+kubectl wait --for=condition=Ready clusterpolicy/kca02-require-owner --timeout=60s
+kubectl get clusterpolicy kca02-require-owner -o jsonpath=&#x27;{.metadata.labels.lecture\.kca/lab} {.spec.background} {.spec.rules[0].name} {.spec.rules[0].match.any[0].resources.kinds} {.spec.rules[0].match.any[0].resources.namespaces} {.spec.rules[0].validate.failureAction} {.spec.rules[0].validate.pattern.metadata.labels.owner}{&quot;\n&quot;}&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">clusterpolicy.kyverno.io/kca02-require-owner created
+clusterpolicy.kyverno.io/kca02-require-owner condition met
+kca02 false require-owner [&quot;Pod&quot;] [&quot;kca02&quot;] Enforce ?*</pre></div><div class="grp has-y"><div class="gl"><div class="cn">과제 정책 후: owner 없음·있음 Pod 서버 dry-run</div><div class="cmd"><pre><code>kubectl apply --dry-run=server -f 11-pod-owner-missing.yaml
+kubectl apply --dry-run=server -f 12-pod-owner.yaml</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">Error from server: error when creating &quot;11-pod-owner-missing.yaml&quot;: admission webhook &quot;validate.kyverno.svc-fail&quot; denied the request: 
+resource Pod/kca02/owner-missing was blocked due to the following policies 
+kca02-require-owner:
+  require-owner: &#x27;validation error: owner 라벨 필요. rule require-owner failed at path /metadata/labels/owner/&#x27;
+pod/owner-ok created (server dry run)</pre></div><div class="gy"><details class="yp" open data-file="11-pod-owner-missing.yaml" data-sha="f26ca2c479595df4e531c3a7c7482fccbb08892f251c41e945762a153e584be9"><summary>YAML 보기 · 11-pod-owner-missing.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> owner-missing</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca02</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+    <span class="yk">app</span>:<span class="ys"> web</span>
+    <span class="yk">team</span>:<span class="ys"> platform</span>
+    <span class="yk">env</span>:<span class="ys"> dev</span>
+<span class="hl hl-bad" data-n="← owner 라벨 없음">    <span class="yk">tier</span>:<span class="ys"> front</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> nginx</span>
+      <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details><details class="yp" open data-file="12-pod-owner.yaml" data-sha="561e92510a7400c62652e85c8d2fe6d430e4075ddcd13b6b50cf97522aea9208"><summary>YAML 보기 · 12-pod-owner.yaml</summary><div class="cmd ycode"><pre><code><span class="yk">apiVersion</span>:<span class="ys"> v1</span>
+<span class="yk">kind</span>:<span class="ys"> Pod</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>:<span class="ys"> owner-ok</span>
+  <span class="yk">namespace</span>:<span class="ys"> kca02</span>
+  <span class="yk">labels</span>:
+    <span class="yk">lecture.kca/lab</span>:<span class="ys"> kca02</span>
+    <span class="yk">app</span>:<span class="ys"> web</span>
+    <span class="yk">team</span>:<span class="ys"> platform</span>
+    <span class="yk">env</span>:<span class="ys"> dev</span>
+    <span class="yk">tier</span>:<span class="ys"> front</span>
+<span class="hl hl-good" data-n="← owner 라벨 있음">    <span class="yk">owner</span>:<span class="ys"> alice</span></span>
+<span class="yk">spec</span>:
+  <span class="yk">containers</span>:
+    - <span class="yk">name</span>:<span class="ys"> nginx</span>
+      <span class="yk">image</span>:<span class="ys"> nginx:1.27</span>
+</code></pre><button class="cp" type="button">복사</button></div></details></div></div><div class="grp"><div class="cn">자동 판정</div><div class="cmd"><pre><code>KCA_Q008_FILE=my-require-owner.yaml ./verify.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob"><span class="bd bd-after">적용 후</span> 출력</div><pre class="out">...
+PASS: pod/owner-ok created \(server dry run\)
+
+RESULT pass=&lt;n&gt; fail=0</pre></div><p class="stuck">막힐 때: Required value·unknown field면 5·7단계 오류와 비교</p><details><summary>풀이</summary><pre class="sol" style="margin:0;background:var(--code);color:var(--codefg);font:13px/1.5 var(--mono);padding:12px 14px;border-radius:8px;overflow-x:auto"><code>apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kca02-require-owner
+  labels:
+    lecture.kca/lab: kca02
+spec:
+  background: false
+  rules:
+    - name: require-owner
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - kca02
+      validate:
+        failureAction: Enforce
+        message: &quot;owner 라벨 필요&quot;
+        pattern:
+          metadata:
+            labels:
+              owner: &quot;?*&quot;
+</code></pre></details><label class="chk"><input type="checkbox" data-k="A-과제"> 이 단계 완료</label></section>
+<section class="page step" id="step-17" data-k="A-판정" data-title="자동 판정(선택)"><p class="crumb">실습 · v1.19 ClusterPolicy 구조</p><header><h2 tabindex="-1"><span class="no">판정</span> 자동 판정(선택) </h2></header><p class="eff">0~9단계를 자동 실행해 fail=0이면 정상이다(답안 파일이 없으면 과제 판정 SKIP).</p><div class="grp"><div class="cn">전 단계 자동 판정</div><div class="cmd"><pre><code>./verify.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">...
+SKIP: 문항 풀이 파일 없음(학습자 패키지), KCA-D1-008 판정 생략
+
+RESULT pass=&lt;n&gt; fail=0</pre></div><label class="chk"><input type="checkbox" data-k="A-판정"> 이 단계 완료</label></section>
+<section class="page step" id="step-18" data-k="A-정리" data-title="정리"><p class="crumb">끝내기</p><header><h2 tabindex="-1"><span class="no">정리</span> 정리 </h2></header><p class="eff">reset은 실습 리소스만, teardown은 클러스터와 전용 kubeconfig까지 지운다.</p><div class="grp"><div class="cn">실습 리소스 초기화</div><div class="cmd"><pre><code>./reset.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">초기화 완료: kca02, Namespace kca02 비어 있음</pre></div><div class="grp"><div class="cn">클러스터 삭제</div><div class="cmd"><pre><code>./teardown.sh</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">Deleting cluster &quot;kca02&quot; ...
+Deleted nodes: [&quot;kca02-control-plane&quot;]
+정리 완료</pre></div><label class="chk"><input type="checkbox" data-k="A-정리"> 이 단계 완료</label></section>
+<section class="page" id="done" data-title="완료"><h2 tabindex="-1">완료</h2><p id="donesum"></p><ul id="todo"></ul><p>남은 클러스터가 있으면 <code>./teardown.sh</code>로 정리합니다. 막힌 단계는 목차의 문제 해결을 봅니다.</p></section>
+<section class="page" id="trouble" data-title="문제 해결"><h2 tabindex="-1">문제 해결</h2><table>
+<tr><th>증상</th><th>원인</th><th>확인·해결</th></tr>
+<tr><td>setup: inotify 한도 부족</td><td>Docker VM/호스트 <code>fs.inotify.max_user_instances</code> &lt; 512, kubelet "too many open files"</td><td>macOS: <code>docker run --rm --privileged --pid=host alpine:3.20 sysctl -w fs.inotify.max_user_instances=512</code> (Docker 재시작 시 원복)<br>Linux: <code>sudo sysctl -w fs.inotify.max_user_instances=512</code></td></tr>
+<tr><td>kind 생성 중 control-plane 실패</td><td>메모리 부족, 다른 kind 클러스터 실행 중</td><td><code>kind get clusters</code>, Docker 메모리 4GiB 이상, 필요 없는 클러스터는 소유자가 직접 정리</td></tr>
+<tr><td>정책 apply 시 <code>failed calling webhook "mutate-policy.kyverno.svc"</code></td><td>Kyverno webhook 준비 전</td><td><code>./setup.sh</code> 재실행(멱등, webhook 대기 포함)</td></tr>
+<tr><td>kubectl이 다른 클러스터를 가리킴</td><td>새 터미널에서 env.sh 미실행</td><td><code>source ./env.sh</code>, <code>kubectl config current-context</code> = <code>kind-kca02</code></td></tr>
+<tr><td>기대 출력과 다름(created/unchanged)</td><td>이전 실습 잔여 리소스</td><td><code>./reset.sh</code> 후 해당 파트 1단계부터</td></tr>
+<tr><td>setup: 같은 이름 클러스터가 실습 소유 아님</td><td>이름 충돌</td><td>기존 클러스터는 건드리지 않음, 소유자 확인 후 정리</td></tr>
+<tr><td>ClusterPolicy apply가 거부되거나, 이미 있던 정책이 no-app Pod를 막지 않음</td><td>Kyverno v1.20 이상 설치(새 레거시 정책 생성 거부, 기존 정책 미실행)</td><td><code>kubectl -n kyverno get deploy kyverno-admission-controller -o jsonpath='{.spec.template.spec.containers[0].image}'</code> = <code>...:v1.19.2</code> 확인, 아니면 <code>./teardown.sh</code> 후 <code>./setup.sh</code></td></tr>
+<tr><td>Pod STATUS가 ContainerCreating·Running으로 다름</td><td>이미지 받는 시간 차이</td><td>정상(admission 결과와 무관)</td></tr>
+<tr><td>4·5·8단계 오류 줄이 길다</td><td>Kyverno가 거부한 rule 전체를 <code>Invalid value: {...}</code>에 출력</td><td>정상, 가이드는 <code>{...}</code>로 줄임</td></tr>
+</table><p class="note">Pod AGE·STATUS는 실행마다 다릅니다. 긴 줄은 ...로, 거부된 rule 전체 JSON은 {...}로 줄였고, ClusterPolicy deprecated 경고 줄(v1.19.2에서 매번 출력, 정상)은 생략했습니다. 키보드 ←/→로 이전·다음.</p></section>
+</main>
+<div class="pager">
+  <button type="button" id="prev">이전</button>
+  <span id="cnt" class="note"></span><div class="track"><div class="fill" id="fill"></div></div>
+  <button type="button" id="next">다음</button>
+</div>
+<script>
+(function(){
+  try{ if(window.matchMedia('(max-width:1100px)').matches) document.querySelectorAll('details.yp').forEach(function(d){ d.open=false; }); }catch(e){}
+  var KEY="kca02-guide-v1", TOTAL=18;
+  var order=['overview']; for(var i=1;i<=TOTAL;i++) order.push('step-'+i); order.push('done');
+  var known=order.concat(['trouble']);
+  var st={cur:'overview',done:{}};
+  try{ var v=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(v&&typeof v==='object'&&!Array.isArray(v)){ if(typeof v.cur==='string'&&known.indexOf(v.cur)>=0) st.cur=v.cur; if(v.done&&typeof v.done==='object'&&!Array.isArray(v.done)) st.done=v.done; }
+  }catch(e){}
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} }
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var boxes=$$('main input[data-k]'), links=$$('nav a[data-page]');
+  function render(){
+    var d=0;
+    boxes.forEach(function(b){ var on=st.done[b.dataset.k]===true; b.checked=on; b.closest('.page').classList.toggle('isdone',on); if(on)d++; });
+    links.forEach(function(a){ var c=a.dataset.page===st.cur; a.classList.toggle('cur',c); if(c) a.setAttribute('aria-current','step'); else a.removeAttribute('aria-current');
+      if(a.dataset.k){ var ok=st.done[a.dataset.k]===true; a.classList.toggle('ok',ok); a.setAttribute('aria-label',a.textContent.trim()+(ok?' (완료)':'')); } });
+    $$('.page').forEach(function(p){ p.classList.toggle('on',p.id===st.cur); });
+    var i=order.indexOf(st.cur);
+    $('#pos').textContent = st.cur.indexOf('step-')===0 ? (i+' / '+TOTAL) : ($('#'+st.cur).dataset.title);
+    $('#cnt').textContent = '완료 '+d+' / '+TOTAL;
+    $('#fill').style.width=(100*d/TOTAL)+'%';
+    $('#prev').disabled = (i<=0 && st.cur!=='trouble');
+    $('#next').textContent = (st.cur==='step-'+TOTAL) ? '완료' : '다음';
+    $('#next').disabled = (st.cur==='done');
+    if(st.cur==='done'){
+      $('#donesum').textContent='완료 체크 '+d+' / '+TOTAL;
+      var ul=$('#todo'); ul.innerHTML='';
+      boxes.forEach(function(b){ if(!b.checked){ var p=b.closest('.page'), li=document.createElement('li'), a=document.createElement('a');
+        a.href='#'+p.id; a.textContent=p.querySelector('h2').textContent.trim(); li.appendChild(a); ul.appendChild(li); } });
+    }
+  }
+  var mq=window.matchMedia('(max-width:900px)');
+  function navState(open){ document.body.classList.toggle('navopen',open); $('#navbtn').setAttribute('aria-expanded',open?'true':'false');
+    var nv=$('#nav'); if(mq.matches&&!open) nv.setAttribute('inert',''); else nv.removeAttribute('inert'); }
+  mq.addEventListener&&mq.addEventListener('change',function(){ navState(false); });
+  function go(id,push){
+    if(known.indexOf(id)<0){ id='overview'; push=true; }
+    st.cur=id; save(); render();
+    if(push!==false && location.hash!=='#'+id) location.hash=id; else if(location.hash!=='#'+id) history.replaceState(null,'','#'+id);
+    window.scrollTo(0,0);
+    var h=$('#'+id+' h2'); if(h) h.focus({preventScroll:true});
+    navState(false);
+  }
+  function step(dl){ var i=order.indexOf(st.cur); if(st.cur==='trouble') i=order.length; var j=Math.max(0,Math.min(order.length-1,i+dl)); go(order[j]); }
+  $('#prev').addEventListener('click',function(){ step(-1); });
+  $('#next').addEventListener('click',function(){ step(1); });
+  window.addEventListener('hashchange',function(){ var h=location.hash.slice(1); if(h&&h!==st.cur) go(h,false); });
+  document.addEventListener('keydown',function(ev){
+    if(ev.key==='Escape'&&document.body.classList.contains('navopen')){ navState(false); $('#navbtn').focus(); return; }
+    if(ev.altKey||ev.ctrlKey||ev.metaKey||ev.shiftKey) return;
+    var t=ev.target&&ev.target.tagName; if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT') return;
+    if(ev.key==='ArrowRight'){ step(1); ev.preventDefault(); } else if(ev.key==='ArrowLeft'){ step(-1); ev.preventDefault(); }
+  });
+  boxes.forEach(function(b){ b.addEventListener('change',function(){ st.done[b.dataset.k]=b.checked; save(); render(); }); });
+  $('#clr').addEventListener('click',function(){ st={cur:'overview',done:{}}; save(); go('overview'); });
+  $('#navbtn').addEventListener('click',function(){ var o=!document.body.classList.contains('navopen'); navState(o); if(o){ var c=$('nav a.cur')||$('nav a'); c.focus(); } });
+  function copy(t,btn){
+    function ok(){ btn.textContent='복사됨'; btn.classList.add('ok'); setTimeout(function(){ btn.textContent='복사'; btn.classList.remove('ok'); },1200); }
+    function fb(){ var a=document.createElement('textarea'); a.value=t; a.style.position='fixed'; a.style.opacity='0'; document.body.appendChild(a); a.select(); var done=false; try{ done=document.execCommand('copy'); }catch(e){ done=false; } document.body.removeChild(a);
+      if(done) ok(); else { btn.textContent='직접 선택해 복사'; var r=document.createRange(); r.selectNodeContents(btn.parentNode.querySelector('code')); var sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); } }
+    if(navigator.clipboard&&window.isSecureContext){ navigator.clipboard.writeText(t).then(ok,fb); } else fb();
+  }
+  $$('.cp').forEach(function(b){ b.addEventListener('click',function(){ copy(b.parentNode.querySelector('code').textContent,b); }); });
+  var h=location.hash.slice(1);
+  go(known.indexOf(h)>=0 ? h : st.cur, false);
+  navState(false);
+})();
+</script>
+</body>
+</html>

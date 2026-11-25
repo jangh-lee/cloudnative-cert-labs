@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-pinned
+  namespace: kca23
+  labels:
+    lecture.kca/lab: kca23
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-pinned
+  template:
+    metadata:
+      labels:
+        app: web-pinned
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27

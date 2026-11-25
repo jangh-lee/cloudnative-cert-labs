@@ -1,0 +1,29 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kca02-two-types
+  labels:
+    lecture.kca/lab: kca02
+spec:
+  background: false
+  rules:
+    - name: require-app
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - kca02
+      validate:
+        failureAction: Enforce
+        message: "app 라벨 필요"
+        pattern:
+          metadata:
+            labels:
+              app: "?*"
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              team: platform

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cache
+  namespace: kca11
+  labels:
+    lecture.kca/lab: kca11
+    tier: cache
+spec:
+  containers:
+    - name: app
+      image: nginx:1.27

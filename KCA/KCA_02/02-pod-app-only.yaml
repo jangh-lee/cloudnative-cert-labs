@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-only
+  namespace: kca02
+  labels:
+    lecture.kca/lab: kca02
+    app: web
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27

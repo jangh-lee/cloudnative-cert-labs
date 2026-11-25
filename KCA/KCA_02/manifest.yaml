@@ -1,0 +1,33 @@
+lesson: KCA_02
+verified: {level: L3, date: "2026-11-25", host: "macOS arm64, Docker 29.5.2 (5.8GiB)", result: "Kyverno v1.19.2 단일, 3차(Codex 2차 반영) setup(96초)→setup 재실행(31초)→verify pass=58 fail=0→env→guide_walk 11단계→reset·재실행→teardown·재실행, ~/.kube/config·context·helm repo 해시 전후 동일"}
+clusters:
+  - {tool: kind, name: kca02, nodeImage: "kindest/node:v1.35.8@sha256:07b2536e30b803ed61d1677a79df6115f798ce64c80f9e22f6ed45afd09323c0"}
+tools: {kind: v0.33.0, kubectl: v1.37.2, helm: v4.3.2}
+charts:
+  - {name: kyverno (repo https://kyverno.github.io/kyverno/), version: 3.9.2, appVersion: v1.19.2}
+images:
+  - nginx:1.27  # 0·2단계 Pod
+kubeconfig: "~/.kca-lab/<cluster>.kubeconfig"
+files:
+  - {path: 00-namespace.yaml, sha256: a6f670dbf62afa3751212db0dfe0523ba1fd6becabf38ab9dadf3e37ebba6f10}
+  - {path: 01-pod-no-app.yaml, sha256: d50248961ab74121fed18375c79058e006b9167509086d4702590441ce017bd9}
+  - {path: 02-pod-app-only.yaml, sha256: dedfbb48e037dd1b58161a15a0b9aa71f36bb9c412533b85ebd04c8c74d48ffe}
+  - {path: 03-cpol-require-app.yaml, sha256: b52ee68708a5fabf7f3af246e9dd3e3522d7190a9fe473d336ccbc31f4bbd37f}
+  - {path: 04-cpol-no-type.yaml, sha256: 8391b846685d5a0f4379b6eb0fdc39ff0958a7e7d32ca138a5af475aa93713d4}
+  - {path: 05-cpol-two-types.yaml, sha256: 30c871edb981ba6bcc9e4c948c8f0dfa0c2f7a2406f6f6ab0e48446caf23eec9}
+  - {path: 06-cpol-team-bad-position.yaml, sha256: 3f0c305010caf5aca6f47762e61ac14577ec15fbf3a960f0b9be861bfad13833}
+  - {path: 07-cpol-team-fixed.yaml, sha256: 094740f764cf4d0bdf61397704c6e910a259e21575e810924a6f0a2a7a0e05c8}
+  - {path: 08-cpol-no-match.yaml, sha256: b96b0d39b440c65cac09824758c862b18fa779c5c1d67e34448691541a928cde}
+  - {path: 09-cpol-dup-name.yaml, sha256: e5a22bbfebf2d4f9e655542674828df0408d86a2a474361efec2cf8f5729c72e}
+  - {path: 10-cpol-unique-name.yaml, sha256: cd2ec3ba7368e33b45c4d21ac5c2243263d0c2decab3a2022dde7abb78c3be43}
+  - {path: 11-pod-owner-missing.yaml, sha256: f26ca2c479595df4e531c3a7c7482fccbb08892f251c41e945762a153e584be9}
+  - {path: 12-pod-owner.yaml, sha256: 561e92510a7400c62652e85c8d2fe6d430e4075ddcd13b6b50cf97522aea9208}
+  - {path: README.md, sha256: 40a4b54f8113676defbf282a508882e103c7b57e547abe420dceb712e5625768}
+  - {path: env.sh, sha256: f2344cb9bc4fffc85f60d31a614f3851c6b1dc840cefdd65c435267be4b77cb6}
+  - {path: guide.html, sha256: 934175ae98508c2c6f3a56d22396b6194c330a33ce5cfc778c772f6eb86756eb}
+  - {path: lib.sh, sha256: 66e273ed5b3b1ac0d0852bbd43d757c226cca43a53cb4eff46bbf025406ea32b}
+  - {path: reset.sh, sha256: 50bc472e0a56ba1621cbe0f383b866e41cf386bb1f1b5f78ac60b316ef7cb04c}
+  - {path: setup.sh, sha256: ec647a9ba8e7f637c9546c463d6608946427534ead6fd0ad02b1da6c0fc3c80a}
+  - {path: teardown.sh, sha256: 5d10dd520bcab9f9eb26df7fad4673c2617fd921f737d0dca4d92fb2d239eed0}
+  - {path: verify.sh, sha256: 03830bbc68ff2acd3f2de0c587d6e8cf27ed4b1098c997b5d3aad90546caabdb}
+sources: [D60, D38, D61, D62, D63, D64, D29, D17, D28, D30, D47]

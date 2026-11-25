@@ -1,0 +1,17 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kca02-no-type
+  labels:
+    lecture.kca/lab: kca02
+spec:
+  background: false
+  rules:
+    - name: require-app
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - kca02

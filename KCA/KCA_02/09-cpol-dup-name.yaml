@@ -1,0 +1,39 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kca02-env-tier
+  labels:
+    lecture.kca/lab: kca02
+spec:
+  background: false
+  rules:
+    - name: require-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - kca02
+      validate:
+        failureAction: Enforce
+        message: "env 라벨 필요"
+        pattern:
+          metadata:
+            labels:
+              env: "?*"
+    - name: require-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - kca02
+      validate:
+        failureAction: Enforce
+        message: "tier 라벨 필요"
+        pattern:
+          metadata:
+            labels:
+              tier: "?*"

@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kca23-selector
+  labels:
+    lecture.kca/lab: kca23
+spec:
+  background: false
+  rules:
+    - name: image-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - kca23
+              selector:
+                matchLabels:
+                  tier: web
+      validate:
+        failureAction: Enforce
+        message: "latest 태그 금지"
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: owner-ok
+  namespace: kca02
+  labels:
+    lecture.kca/lab: kca02
+    app: web
+    team: platform
+    env: dev
+    tier: front
+    owner: alice
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27

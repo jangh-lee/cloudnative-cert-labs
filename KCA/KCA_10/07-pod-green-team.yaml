@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: with-team
+  namespace: kca10-green
+  labels:
+    lecture.kca/lab: kca10
+    team: web
+spec:
+  containers:
+    - name: web
+      image: nginx:1.27

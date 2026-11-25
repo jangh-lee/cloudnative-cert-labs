@@ -1,0 +1,43 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kca11-require-owner
+  labels:
+    lecture.kca/lab: kca11
+spec:
+  background: false
+  rules:
+    - name: require-owner
+      match:
+        all:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - kca11
+              selector:
+                matchLabels:
+                  tier: web
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - kca11
+              namespaceSelector:
+                matchLabels:
+                  env: prod
+      exclude:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              selector:
+                matchLabels:
+                  exempt: "true"
+      validate:
+        failureAction: Enforce
+        message: "owner 라벨 필요"
+        pattern:
+          metadata:
+            labels:
+              owner: "?*"

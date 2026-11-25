@@ -1,0 +1,23 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kca23-no-default-ns
+  labels:
+    lecture.kca/lab: kca23
+spec:
+  background: false
+  rules:
+    - name: no-default
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - kca23
+      validate:
+        failureAction: Enforce
+        message: "default Namespace 금지"
+        pattern:
+          metadata:
+            namespace: "!default"

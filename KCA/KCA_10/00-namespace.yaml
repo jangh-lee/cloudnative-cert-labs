@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kca10-blue
+  labels:
+    lecture.kca/lab: kca10
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kca10-green
+  labels:
+    lecture.kca/lab: kca10

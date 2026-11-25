@@ -1,0 +1,24 @@
+lesson: KCA_01
+verified: {level: L3, date: "2026-11-25", host: "macOS arm64, Docker 29.5.2 (5.8GiB)", result: "Kyverno v1.19.2 단일, setup 91초→setup 재실행 34초→verify pass=45 fail=0→env→guide_walk 11단계→reset·재실행→teardown·재실행, ~/.kube/config·helm repo 설정·현재 context 전후 동일, UI 17/17"}
+clusters:
+  - {tool: kind, name: kca01, nodeImage: "kindest/node:v1.35.8@sha256:07b2536e30b803ed61d1677a79df6115f798ce64c80f9e22f6ed45afd09323c0"}
+tools: {kind: v0.33.0, kubectl: v1.37.2, helm: v4.3.2}
+charts:
+  - {name: kyverno (repo https://kyverno.github.io/kyverno/), version: 3.9.2, appVersion: v1.19.2}
+images:
+  - registry.k8s.io/pause:3.10  # 10·11단계 Pod
+kubeconfig: "~/.kca-lab/<cluster>.kubeconfig"
+files:
+  - {path: 00-namespace.yaml, sha256: a97c099b880a6e3300924b15db1a5a2188473532c1211f8a61501f6b5bce42bb}
+  - {path: 01-cpol-require-team.yaml, sha256: a0084636f55bbe0ca08d2ef77658f343427f80ba47b84ff64d33f705eac83f4d}
+  - {path: 02-pod-no-team.yaml, sha256: e1bb006c3754fbff75472d976cafb45b55d2b6acab50f8a073bb7ae27ec86680}
+  - {path: 03-pod-team.yaml, sha256: a655f7dbc782f96e37faf83eb5a0a293bc4df8f86a770a1bdc487e2d4e6a65c2}
+  - {path: README.md, sha256: 522addbb1c76c06fde24f2381790f50bc6c6f3b425eca28bc23b41058437db54}
+  - {path: env.sh, sha256: 54d18eb95a773edae1d370c9a7dbf8a5d238801b9dd23f95247684455381a064}
+  - {path: guide.html, sha256: 3170208df0ae0075052fb61436aefe2961451bdd5b65846b836170236c9a7516}
+  - {path: lib.sh, sha256: 2e960f48fde589405e8b6efee44eb8282ff743e42be0a779461e76b445370c56}
+  - {path: reset.sh, sha256: 5ea5a3b42f5989cd58007a77cb7a5e2aba15fd241ac290415a58f53b6b05038b}
+  - {path: setup.sh, sha256: 696617c480b690bf13f7d13a48e5b0a3d2f60d5ec6fa928daca0287d04ae82fa}
+  - {path: teardown.sh, sha256: c5832fe52b3db0f81040b6859336582b24ceac5fae20a4bf7006d1d20a108430}
+  - {path: verify.sh, sha256: 1402108d22bf969ed5de54140d3ba52d0d8b922416a2a968589605f4eb7e0b4a}
+sources: [D50, D55, D47, D53, D54, D51, D52, D30, D28, D29]

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kca11
+  labels:
+    lecture.kca/lab: kca11
+    env: prod

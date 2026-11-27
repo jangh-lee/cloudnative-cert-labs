@@ -1,8 +1,8 @@
 lesson: KCA_11
-verified: {level: L3, date: "2026-11-25", host: "macOS arm64, Docker 29.5.2 (5.8GiB)", result: "Kyverno v1.19.2 단일, setup(83초)→setup 재실행(30초)→verify pass=58 fail=0→env(실패 경로 포함)→guide_walk 11단계→reset 실습 외 리소스 중단 확인→reset·재실행→teardown·재실행, UI 17/17"}
+verified: {level: L3, date: "2026-11-27", host: "macOS arm64, Docker 29.5.2 (Colima 4CPU/6GiB)", result: "Kyverno v1.19.2 단일, kubectl v1.35.8, setup 99초→재실행 37초→verify pass=58 fail=0→guide_walk→reset 2회→teardown 2회, 보조 L3 env·실습 외 리소스 중단·reset·teardown 통과(보조 setup 1차 이미지 pull 지연 rc=1, 재실행 복구), 격리 전후 동일, UI 17/17, 다크·라이트 캡처 위반 0"}
 clusters:
   - {tool: kind, name: kca11, nodeImage: "kindest/node:v1.35.8@sha256:07b2536e30b803ed61d1677a79df6115f798ce64c80f9e22f6ed45afd09323c0"}
-tools: {kind: v0.33.0, kubectl: v1.37.2, helm: v4.3.2}
+tools: {kind: v0.33.0, kubectl: v1.35.8, helm: v4.3.2}
 charts:
   - {name: kyverno (repo https://kyverno.github.io/kyverno/), version: 3.9.2, appVersion: v1.19.2}
 images:
@@ -21,12 +21,12 @@ files:
   - {path: 13-cpol-exclude-label.yaml, sha256: 637d79ebf749894e2e0a3b5181f00d5a6df0f7adb1f8e0533f72205badf90a90}
   - {path: 14-cpol-exclude-sa.yaml, sha256: 05d33161062a0d2a4d0ee0318cede0963c597bc488c2efd04b36590d59dc1f5b}
   - {path: 15-cpol-subjects-bg.yaml, sha256: 94cece6fa2b3c448f36157708929b74debca649427f493c27d976798425b8bac}
-  - {path: README.md, sha256: 37b85c7acde9ba6f5658019899ad3d2e451d4c3471444e942efd939b1ad1798d}
-  - {path: env.sh, sha256: 93095cc315b1ee18cc14f05deb9d64b78849cf16f6bfeb661766675fab10ca13}
-  - {path: guide.html, sha256: 28a833274bdc46f7312844899c7d276778bf79deebbe32a4ebf554e5a4f488b4}
-  - {path: lib.sh, sha256: 74b7006ebfc51a0b9dc5126e6dd2602887f39a24c8f70130f641721c6d3b94c0}
+  - {path: README.md, sha256: ad64910760e2686e5e48bcaae4a4f6b7876fe730a69e490d0fe7f678ee612a07}
+  - {path: env.sh, sha256: d1ada37862c5857b8c9648430a17b62eafa942b689ae36a63639f056f7d2f2ce}
+  - {path: guide.html, sha256: aecf0b5ed2562adbcf78fde6fc3404afae6c71468c765d95063d11f580702aeb}
+  - {path: lib.sh, sha256: 583c7431a4fa7ab42cab74487033bad5445aafb345e522eda24dd012a1da171b}
   - {path: reset.sh, sha256: 50bc472e0a56ba1621cbe0f383b866e41cf386bb1f1b5f78ac60b316ef7cb04c}
-  - {path: setup.sh, sha256: ec647a9ba8e7f637c9546c463d6608946427534ead6fd0ad02b1da6c0fc3c80a}
+  - {path: setup.sh, sha256: 8e42a8303235a54956cc3bd0c252c9d82700ac8471ed50413d203894cff51d47}
   - {path: teardown.sh, sha256: 5d10dd520bcab9f9eb26df7fad4673c2617fd921f737d0dca4d92fb2d239eed0}
   - {path: verify.sh, sha256: adab5a2b00e4b0c483a1433185f330d3d01f18dfe6b540b101bee932337a95dd}
 sources: [D90, D91, D92, D93, D29, D17, D16, D28, D30, D47]

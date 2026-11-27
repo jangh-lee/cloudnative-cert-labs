@@ -57,10 +57,12 @@ expect '^kca01/kca01$'
 step 7b "kubectl -n kube-system get configmap kca-lab-owner -o jsonpath='{.data.id}'"
 [ -n "$out" ] && [ "$out" = "$(cat "$IDF")" ] && ok "id 일치" || ng "id 불일치"
 # 다른 상태 폴더(표식 id 없음)에서는 teardown 거부, 클러스터 유지
-if [ -e other-home ]; then ng "other-home 이미 있음, 소유 거부 확인 생략(삭제하지 않음)"; else
-  step 8 "mkdir other-home && KCA_LAB_HOME=./other-home ./teardown.sh"
-  rc_is -ne; has "소유 확인 실패: kca01 의 kube-system/kca-lab-owner 와 $LAB_DIR/other-home/kca01.id 불일치"
-  rm -f other-home/kca01.kubeconfig && rmdir other-home
+# 새 임시 폴더(mktemp -d)만 사용, 생성에 성공한 경로만 정리
+if ! H="$(mktemp -d "${TMPDIR:-/tmp}/kca01-home.XXXXXX")"; then ng "임시 상태 폴더 생성 실패, 소유 거부 확인 생략"; else
+  export H
+  step 8 "KCA_LAB_HOME=\"\$H\" ./teardown.sh"
+  rc_is -ne; has "소유 확인 실패: kca01 의 kube-system/kca-lab-owner 와 $H/kca01.id 불일치"
+  rm -f "$H/kca01.kubeconfig" && rmdir "$H"
 fi
 step 8b "kind get clusters | grep -x kca01"
 expect '^kca01$'

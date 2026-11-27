@@ -1,8 +1,8 @@
 lesson: KCA_10
-verified: {level: L3, date: "2026-11-25", host: "macOS arm64, Docker 29.5.2 (5.8GiB)", result: "Kyverno v1.19.2 단일, 3차(Codex 2차 반영) setup(89초)→setup 재실행(33초)→verify→음성 시험(fail=8 검출)→env→reset·재실행→teardown·재실행, guide_walk 2차, pass=60 fail=0, UI 17/17"}
+verified: {level: L3, date: "2026-11-27", host: "macOS arm64, Docker 29.5.2 (Colima 4CPU/6GiB)", result: "Kyverno v1.19.2 단일, kubectl v1.35.8, setup 128초→재실행 39초→verify pass=61 fail=0→guide_walk→reset 2회→teardown 2회, ~/.kube/config·helm repo 설정·현재 context 전후 동일, UI 17/17, 다크·라이트 캡처 위반 0"}
 clusters:
   - {tool: kind, name: kca10, nodeImage: "kindest/node:v1.35.8@sha256:07b2536e30b803ed61d1677a79df6115f798ce64c80f9e22f6ed45afd09323c0"}
-tools: {kind: v0.33.0, kubectl: v1.37.2, helm: v4.3.2}
+tools: {kind: v0.33.0, kubectl: v1.35.8, helm: v4.3.2}
 charts:
   - {name: kyverno (repo https://kyverno.github.io/kyverno/), version: 3.9.2, appVersion: v1.19.2}
 images:
@@ -18,13 +18,13 @@ files:
   - {path: 06-pol-namespace-kind.yaml, sha256: b3e3bc3ff67e91546bf074a12d7c9e050f0b228b9dbca98c1209a031e0651f1d}
   - {path: 07-pod-green-team.yaml, sha256: 9e4cb4717c5ebed2ce4ddf8aa13808f48d274320a67808b2f5a0ff9d273e6f45}
   - {path: 08-cpol-invalid.yaml, sha256: b77004e66ea3b55de634a66b4d3c49e9a5919337b387b71c5103d1e2a78a6cb8}
-  - {path: README.md, sha256: 6c47eefd4c3017e7ffbe7475f8f3b8526e3b60d3799927091763e8e4cc1bb5c6}
-  - {path: env.sh, sha256: 7a3ce6c27e08b22d8dfc30afea95bb600c10d929a2135ebbb7ef2aca214a5b75}
-  - {path: guide.html, sha256: 892ba74a03b78be2f7021221de3707531a073a7421664dbee0614b268b3f34e0}
-  - {path: lib.sh, sha256: 4f9bff0e98d3c0cd03b9fff5f75e87410ecb2fe1b65c7d61c27a1ca534a92af7}
+  - {path: README.md, sha256: d926a0d8f45fe6977dcc253047789f33bef636d939cb8e65293e1919cc7501d6}
+  - {path: env.sh, sha256: 5a9d92d32b641b0f93e2e721e5041afc239b1bdcb3da852e5363f0d996348423}
+  - {path: guide.html, sha256: 422205fb0d4d86991d83fc31c192acf9af6aafbf2665cd8f859c06cd83fe1df6}
+  - {path: lib.sh, sha256: cf6e876dbab428f858cb0538a7db5980f6a7b8e6e383fd3cc07788e1cc66f8aa}
   - {path: q007-template.yaml, sha256: d1e2d1060598f5fbaf07368dc4ef562dacde1f4466f08fd3e98bc195e088de9a}
   - {path: reset.sh, sha256: 47acf8d10977ea92c950106e4e0f67d183f9a6cf153067d1b71723151b53b51b}
-  - {path: setup.sh, sha256: e2aa889d7563b41619a30a580d033736fddf562cdedd9c164b1b66934c686b5b}
+  - {path: setup.sh, sha256: ad04dd614bdddc1a332bbc9941139fe5088b8e447f9edd97fbdbc2c72ac08f55}
   - {path: teardown.sh, sha256: 5d10dd520bcab9f9eb26df7fad4673c2617fd921f737d0dca4d92fb2d239eed0}
-  - {path: verify.sh, sha256: 540cfbca429d2615b6426d700f3335dc78de3680bdb1c825a599e73bf4272050}
+  - {path: verify.sh, sha256: 0cae4c541cfa787877aec78ea0379b8bb144ff1dc402e780a45de431f1815d89}
 sources: [D80, D81, D82, D83, D84, D85, D86, D87, D88, D15, D17, D29, D28, D30, D47]

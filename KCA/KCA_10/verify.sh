@@ -39,7 +39,7 @@ step 2 "kubectl get pol -A && kubectl get cpol"
 expect '^NAMESPACE +NAME +ADMISSION'; expect '^kca10-blue +require-team +true +false +True'; expect 'No resources found'
 # 3: Policy 적용 후: blue 거부, green 생성
 step 3 "kubectl apply -f 01-pod-blue.yaml"
-rc_is -ne; expect "$DENY"; expect 'resource Pod/kca10-blue/no-team was blocked'; expect 'require-team:'
+rc_is -ne; expect "$DENY"; expect 'resource Pod/kca10-blue/no-team was blocked'; expect '^require-team:$'
 step 3b "kubectl apply -f 02-pod-green.yaml"
 rc_is -eq; expect '^pod/no-team created'
 # 4: 잘못된 ClusterPolicy(failureAction: Deny)는 저장 안 됨 → 같은 규칙 Enforce는 Ready
@@ -53,9 +53,9 @@ step 4c "kubectl apply -f 04-cpol-require-team.yaml && kubectl wait --for=condit
 rc_is -eq; expect 'clusterpolicy.kyverno.io/kca10-require-team created'; expect 'condition met'; expect '^kca10-require-team +true +false +True'
 # 5: ClusterPolicy 적용 후: green도 거부, blue는 두 정책 모두 위반, team 라벨 Pod는 생성
 step 5 "kubectl apply -f 02-pod-green.yaml"
-rc_is -ne; expect 'resource Pod/kca10-green/no-team was blocked'; expect 'kca10-require-team:'
+rc_is -ne; expect 'resource Pod/kca10-green/no-team was blocked'; expect '^kca10-require-team:$'; reject '^require-team:$'
 step 5b "kubectl apply -f 01-pod-blue.yaml"
-rc_is -ne; expect 'resource Pod/kca10-blue/no-team was blocked'; expect 'kca10-require-team:'; expect 'require-team:'
+rc_is -ne; expect 'resource Pod/kca10-blue/no-team was blocked'; expect '^kca10-require-team:$'; expect '^require-team:$'
 step 5c "kubectl apply -f 07-pod-green-team.yaml"
 rc_is -eq; expect 'pod/with-team created'
 # 6: Policy는 namespaces·클러스터 범위 kind를 쓸 수 없음

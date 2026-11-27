@@ -11,7 +11,7 @@
 | kubectl | v1.35.x 실습용 `~/.kca-lab/bin/kubectl` (node v1.35.8, 지원 1.34~1.36), 순서 `KCA_KUBECTL` → `~/.kca-lab/bin/kubectl` → PATH, 시스템 kubectl 미변경 |
 | 공통 | 이후 회차도 같은 스크립트 5개 + `lib.sh`, 클러스터 이름만 `kca<NN>` |
 | 검증 | `qa/KCA_01_qa.md` |
-| 슬라이드 | 기준 덱 `revised/KCA_01` 23장: S09~S11·S19 (전후 장), S06·S20 (데모), 10·11단계(정책 거부)는 대응 장 없음 |
+| 슬라이드 | 기준 덱 `revised/KCA_01` 23장: S09~S11·S19 (전후 장), S06·S20 (버전·Helm), 8·10·11단계(webhook·정책 거부)는 대응 장 없음 |
 
 ## kubectl v1.35
 
@@ -44,8 +44,8 @@ mkdir -p ~/.kca-lab/bin && (cd ~/.kca-lab/bin && T="$(mktemp kubectl.XXXXXX)" &&
 | 4 | `echo "KUBECONFIG=${KUBECONFIG:-unset}"` | `KUBECONFIG=unset` | env.sh 적용 전 | S11 |
 | 5 | `source ./env.sh` | 전용 kubeconfig, `kind-kca01`, `~/.kube/config`에 kca01 없음 | env.sh 적용 후 (4 ↔ 5) | S11 |
 | 6 | `helm list -n kyverno` | `kyverno-3.9.2` · `v1.19.2` | - | S20 |
-| 7 | `kubectl -n kyverno get deploy` | 컨트롤러 4개 1/1, 이미지 v1.19.2 | - | S20 |
-| 8 | webhook 실패 정책 조회 → 01 서버 dry-run | `Fail ["CREATE","UPDATE"]`, `created (server dry run)` | - | S20 |
+| 7 | `kubectl -n kyverno get deploy` | 컨트롤러 4개 1/1, 이미지 v1.19.2 | - | S06 |
+| 8 | webhook 실패 정책 조회 → 01 서버 dry-run | `Fail ["CREATE","UPDATE"]`, `created (server dry run)` | - | - |
 | 9 | `./setup.sh 1.20.0` | `버전 고정 ... 거부` | - | S06 |
 | 10 | 02 (정책 없음) | `pod/web-no-team created` | 정책 적용 전 | - |
 | 11 | 01 → 02 → 03 | 02 거부, 03 생성 | 정책 적용 후 (10 ↔ 11) | - |

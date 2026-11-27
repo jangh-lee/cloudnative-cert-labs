@@ -20,7 +20,7 @@ files:
   - {path: 08-cpol-invalid.yaml, sha256: b77004e66ea3b55de634a66b4d3c49e9a5919337b387b71c5103d1e2a78a6cb8}
   - {path: README.md, sha256: d926a0d8f45fe6977dcc253047789f33bef636d939cb8e65293e1919cc7501d6}
   - {path: env.sh, sha256: 5a9d92d32b641b0f93e2e721e5041afc239b1bdcb3da852e5363f0d996348423}
-  - {path: guide.html, sha256: ac547f6b2beca2ad37331d8c9e733fb566ef64deabb915e734b669f18b6ac89a}
+  - {path: guide.html, sha256: 422205fb0d4d86991d83fc31c192acf9af6aafbf2665cd8f859c06cd83fe1df6}
   - {path: lib.sh, sha256: cf6e876dbab428f858cb0538a7db5980f6a7b8e6e383fd3cc07788e1cc66f8aa}
   - {path: q007-template.yaml, sha256: d1e2d1060598f5fbaf07368dc4ef562dacde1f4466f08fd3e98bc195e088de9a}
   - {path: reset.sh, sha256: 47acf8d10977ea92c950106e4e0f67d183f9a6cf153067d1b71723151b53b51b}

@@ -21,7 +21,7 @@ files:
   - {path: 08-pod-latest.yaml, sha256: f2cb3ab9537de316c4bfdf9fc22d3bff29379721c333e58617b26f65be5e6f2a}
   - {path: README.md, sha256: 1c26d231af583f7f5de6fdf9a9dd732631f4c0bc0ed2cc481d87dc606b02b55e}
   - {path: env.sh, sha256: 4b1b905c499ca4ab55dc13a757c649a058980f70ce5851e9f269c9f101c5f320}
-  - {path: guide.html, sha256: d3022028a95c3327275b370a4fa7bf6b9f59b64c6806b271166722e759faae91}
+  - {path: guide.html, sha256: 98e8aaa498b69e568a4f651c85fb16ea7e18909a0c08b9ddd322da9d109cddd8}
   - {path: lib.sh, sha256: 5c9ab1fa48983b2b49a91c5ff71a7c40d05a3501e36ffe8c58cb725532b842ce}
   - {path: reset.sh, sha256: 50bc472e0a56ba1621cbe0f383b866e41cf386bb1f1b5f78ac60b316ef7cb04c}
   - {path: setup.sh, sha256: 8e42a8303235a54956cc3bd0c252c9d82700ac8471ed50413d203894cff51d47}

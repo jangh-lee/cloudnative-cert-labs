@@ -104,7 +104,7 @@ details{margin:10px 0} summary{cursor:pointer;color:var(--sub);font-size:14px}
 <p class="note">Kyverno 정책 실습 – KCA 시험 대비. 본 자료는 Linux Foundation·CNCF와 무관한 독립 교육자료입니다.</p>
 <section class="page" id="overview" data-title="개요"><h2 tabindex="-1">개요</h2><table>
 <tr><th>항목</th><th>값</th></tr>
-<tr><td>배포 변수</td><td><code>LAB_REPO=jangh-lee/cloudnative-cert-labs</code> · <code>LAB_VER=v2026.11.25</code></td></tr>
+<tr><td>배포 변수</td><td><code>LAB_REPO=jangh-lee/cloudnative-cert-labs</code> · <code>LAB_VER=v2026.11.27</code></td></tr>
 <tr><td>목표</td><td>같은 01 Pod가 정책 없음 · Enforce · Audit에서 생성 · 거부 · 생성+보고로 바뀌는 것을 출력으로 확인</td></tr>
 <tr><td>범위</td><td>v1.19 레거시 ClusterPolicy 규칙 단위 <code>validate.failureAction</code>, 단계 0~5 + 과제, 클러스터 <code>kca03</code></td></tr>
 <tr><td>버전</td><td>kind v0.33.0 · node v1.35.8 · Kyverno v1.19.2(chart 3.9.2) 고정</td></tr>
@@ -115,7 +115,7 @@ details{margin:10px 0} summary{cursor:pointer;color:var(--sub);font-size:14px}
 <tr><td>커리큘럼</td><td>KCA_Curriculum.pdf fff366a0 (2024-11-28)</td></tr>
 <tr><td>검증</td><td>2026-11-25 0~5단계·과제(제공 풀이) 명령·출력 실행 확인, 준비 단계 출력은 예시, 도구 확인 출력은 2026-11-26 실습용 kubectl v1.35.8, setup 출력은 2026-11-25 실행(당시 kubectl v1.37.2)</td></tr>
 </table></section>
-<section class="page step" id="step-1" data-k="prep-A1" data-title="자료 받기"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A1</span> 자료 받기 </h2></header><p class="eff">공개 저장소 릴리스의 KCA_03_lab.zip을 받아 풀면 실습 폴더 KCA_03이 생긴다.</p><div class="grp"><div class="cn">저장소·버전 지정</div><div class="cmd"><pre><code>export LAB_REPO=&#x27;jangh-lee/cloudnative-cert-labs&#x27; LAB_VER=&#x27;v2026.11.25&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">(출력 없음)</pre></div><div class="grp"><div class="cn">릴리스 zip 받기·해시 확인 (출력 예시)</div><div class="cmd"><pre><code>curl -fsSLO https://github.com/${LAB_REPO}/releases/download/${LAB_VER}/KCA_03_lab.zip
+<section class="page step" id="step-1" data-k="prep-A1" data-title="자료 받기"><p class="crumb">준비</p><header><h2 tabindex="-1"><span class="no">A1</span> 자료 받기 </h2></header><p class="eff">공개 저장소 릴리스의 KCA_03_lab.zip을 받아 풀면 실습 폴더 KCA_03이 생긴다.</p><div class="grp"><div class="cn">저장소·버전 지정</div><div class="cmd"><pre><code>export LAB_REPO=&#x27;jangh-lee/cloudnative-cert-labs&#x27; LAB_VER=&#x27;v2026.11.27&#x27;</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">(출력 없음)</pre></div><div class="grp"><div class="cn">릴리스 zip 받기·해시 확인 (출력 예시)</div><div class="cmd"><pre><code>curl -fsSLO https://github.com/${LAB_REPO}/releases/download/${LAB_VER}/KCA_03_lab.zip
 shasum -a 256 KCA_03_lab.zip</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">&lt;64자리 sha256&gt;  KCA_03_lab.zip   # 릴리스 페이지 값과 같아야 함</pre></div><div class="grp"><div class="cn">압축 풀고 폴더로 이동 (출력 예시)</div><div class="cmd"><pre><code>unzip KCA_03_lab.zip
 cd KCA_03 &amp;&amp; ls</code></pre><button class="cp" type="button">복사</button></div><div class="ob">출력</div><pre class="out">Archive:  KCA_03_lab.zip
    creating: KCA_03/

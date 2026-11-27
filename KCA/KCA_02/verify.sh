@@ -20,7 +20,9 @@ step() { echo; echo "## $1"; echo "\$ $2"; out="$(eval "$2" 2>&1)"; rc=$?; echo 
 expect() { printf '%s' "$out" | grep -qE -- "$1" && ok "$1" || ng "$1"; }
 reject() { printf '%s' "$out" | grep -qE -- "$1" && ng "없어야 함: $1" || ok "없음: $1"; }
 rc_is()  { [ "$rc" "$1" 0 ] && ok "exit $rc" || ng "exit $rc"; }
-absent() { n="$(kubectl get clusterpolicy "$1" --ignore-not-found -o name 2>/dev/null)"; [ -z "$n" ] && ok "정책 $1 없음(생성 거부)" || ng "정책 $1 생성됨"; }
+# 조회 성공 + 출력 없음일 때만 PASS, 조회 실패(API·권한 오류)는 FAIL
+absent() { n="$(kubectl get clusterpolicy "$1" --ignore-not-found -o name 2>/dev/null)"; c=$?
+  if [ "$c" -ne 0 ]; then ng "정책 $1 조회 실패(rc=$c): $(kubectl get clusterpolicy "$1" --ignore-not-found -o name 2>&1 | grep -v '^Warning:' | head -1)"; elif [ -z "$n" ]; then ok "정책 $1 없음(생성 거부)"; else ng "정책 $1 생성됨"; fi; }
 WH='admission webhook "validate-policy.kyverno.svc" denied the request'
 
 # 0: 적용 전 기준선(정책 없음): 01·02 Pod 생성 후 삭제

@@ -9,15 +9,28 @@
 | kubeconfig | `~/.kca-lab/kca03.kubeconfig` (`KCA_LAB_HOME`로 변경) |
 | 격리 | `~/.kube/config`·현재 context·helm repo 설정 미변경, 소유 표식 `kube-system/kca-lab-owner` + 로컬 id |
 | 지원 | macOS(bash 3.2)·Linux, Docker 4GiB 이상 |
+| kubectl | v1.35.x 실습용 `~/.kca-lab/bin/kubectl` (node v1.35.8, 지원 1.34~1.36), 순서 `KCA_KUBECTL` → `~/.kca-lab/bin/kubectl` → PATH, 시스템 kubectl 미변경 |
 | 검증 | `qa/KCA_03_qa.md` |
 | 슬라이드 | S04·S08·S09 (전후 장), S06·S10·S11 |
+
+## kubectl v1.35
+
+```bash
+OS=$(uname -s | tr A-Z a-z); ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/'); U=https://dl.k8s.io/release/v1.35.8/bin/$OS/$ARCH/kubectl
+mkdir -p ~/.kca-lab/bin && (cd ~/.kca-lab/bin && T="$(mktemp kubectl.XXXXXX)" && { curl -fsSLo "$T" "$U" && echo "$(curl -fsSL "$U.sha256")  $T" | shasum -a 256 -c && chmod +x "$T" && mv "$T" kubectl || { rm -f "$T"; false; }; })
+~/.kca-lab/bin/kubectl version --client
+```
+
+| 동작 | 내용 |
+|---|---|
+| 설치 조건 | 임시 파일로 받아 sha256 확인 성공 시에만 실행 권한 부여·`~/.kca-lab/bin/kubectl`로 이동, 실패하면 임시 파일 삭제 |
 
 ## 명령
 
 | 명령 | 내용 |
 |---|---|
 | `./setup.sh` | 도구·버전 점검 → inotify 점검 → kind 생성 또는 재사용(소유 확인) → Kyverno v1.19.2 설치·이미지 태그 확인 → 정책 webhook 대기 → Namespace `kca03` |
-| `source ./env.sh` | 현재 셸 KUBECONFIG 지정, 실습 폴더로 이동, 소유 확인 실패 시 환경 미변경 |
+| `source ./env.sh` | 현재 셸 KUBECONFIG·실습용 kubectl(PATH 앞) 지정, 실습 폴더로 이동, 소유 확인 실패 시 환경 미변경 |
 | `./verify.sh` | reset 후 0~5단계 자동 실행·판정, 문항 KCA-D1-018 풀이(또는 `KCA_Q018_FILE`) 판정 |
 | `./reset.sh` | 실습 외 리소스 있으면 중단, 없으면 라벨 정책·Pod 삭제 후 빈 Namespace |
 | `./teardown.sh` | 소유 표식 일치 클러스터와 전용 kubeconfig만 삭제 |
@@ -44,6 +57,14 @@
 | `03-cpol-audit.yaml` | 02와 `failureAction: Audit` 한 줄만 다름 |
 | `04-cpol-legacy-field.yaml` | 옛 필드 `spec.validationFailureAction: Enforce`, 규칙 failureAction 없음 |
 | `05-pod-app.yaml` | app 라벨만 있는 Pod `with-app`(과제) |
+
+## 과제 판정
+
+| 실행 | 결과 |
+|---|---|
+| `./verify.sh` | 학습자 패키지에는 풀이 `KCA-D1-018.solution.yaml`이 없음 → `SKIP: 문항 풀이 파일 없음`, 과제 외 단계만 판정 |
+| `KCA_Q018_FILE=my-require-team.yaml ./verify.sh` | 가이드 과제 조건대로 쓴 내 답안으로 과제까지 판정, 경로는 실습 폴더 기준 또는 절대 경로 |
+| 지정한 파일이 없음 | `FAIL: KCA_Q018_FILE 없음` |
 
 ## 알려진 문제
 

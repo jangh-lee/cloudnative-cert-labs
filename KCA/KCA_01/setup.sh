@@ -8,16 +8,14 @@ trap 'echo "ERROR: setup 실패 (단계: ${STEP:-?}). 메시지 확인 후 ./set
 
 STEP="도구 점검"; info "$STEP ($(uname -s))"
 case "$(uname -s)" in Darwin|Linux) ;; *) die "macOS·Linux만 지원" ;; esac
-for t in docker kind kubectl helm; do command -v "$t" >/dev/null 2>&1 || die "$t 없음. 설치 후 재실행"; done
+for t in docker kind helm; do command -v "$t" >/dev/null 2>&1 || die "$t 없음. 설치 후 재실행"; done
 docker info >/dev/null 2>&1 || die "Docker daemon 응답 없음. Docker Desktop/서비스 시작 후 재실행"
 kv="$(kind version | awk '{print $2}')"
 [ "$kv" = "$WANT_KIND" ] || warn "kind $kv (검증 버전 $WANT_KIND)"
-kcv="$(kubectl version --client -o json 2>/dev/null | awk -F'"' '/gitVersion/{print $4; exit}')"
-ver_ge "${kcv#v}" 1.34 || die "kubectl $kcv, 1.34 이상 필요"
-ver_ge 1.36.99 "${kcv#v}" || warn "kubectl $kcv: node v1.35와 minor 2 이상 차이(공식 지원 ±1, 이 실습 명령은 1.37.2로 확인)"
+kubectl_check
 hv="$(helm version --template '{{.Version}}' 2>/dev/null)"
 ver_ge "${hv#v}" 3.14 || die "helm $hv, 3.14 이상 필요"
-echo "    kind $kv · kubectl $kcv · helm $hv · docker $(docker version --format '{{.Server.Version}}')"
+echo "    kind $kv · kubectl $kcv ($(tilde "$KUBECTL")) · helm $hv · docker $(docker version --format '{{.Server.Version}}')"
 mem="$(docker info --format '{{.MemTotal}}')"
 [ "$mem" -ge 4000000000 ] || warn "Docker 메모리 $((mem/1048576))MiB, 4GiB 이상 권장"
 others="$(kind get clusters 2>/dev/null | grep -vx "$CLUSTER" | grep -c . || true)"
@@ -69,9 +67,12 @@ done
 echo "    Deployment 4개 이미지 태그 $APP"
 
 STEP="정책 webhook 대기"; info "$STEP"
-okp=0; last=""
-for _ in $(seq 1 40); do
-  if last="$(k apply --dry-run=server --request-timeout=10s -f "$LAB_DIR/$PROBE" 2>&1)"; then okp=1; break; fi
+# 전체 120초 마감(SECONDS 기준): 요청마다 남은 시간(1초 이상) 안에서 최대 10초, 남은 시간 3초 이하면 중단
+okp=0; last=""; end=$((SECONDS+120))
+while :; do
+  rt=$((end-SECONDS)); [ "$rt" -ge 1 ] || break; [ "$rt" -le 10 ] || rt=10
+  if last="$(k apply --dry-run=server --request-timeout=${rt}s -f "$LAB_DIR/$PROBE" 2>&1)"; then okp=1; break; fi
+  [ $((end-SECONDS)) -gt 3 ] || break
   sleep 3
 done
 [ "$okp" = 1 ] || die "정책 webhook 120초 내 응답 없음. 마지막 오류: $last
